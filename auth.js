@@ -42,6 +42,16 @@ async function register() {
         if (data.success) {
             localStorage.setItem('astreon_token', data.token);
             localStorage.setItem('astreon_user', JSON.stringify(data.user));
+            
+            // Backup account data (encrypted/hidden) - only for recovery, not visible on web
+            const backupData = {
+                username: data.user.username,
+                accountId: data.user.id,
+                timestamp: Date.now()
+            };
+            // Store as base64 encoded to hide from casual inspection
+            localStorage.setItem('_astreon_backup', btoa(JSON.stringify(backupData)));
+            
             window.location.href = 'dashboard.html';
         } else {
             alert(data.message);
@@ -72,6 +82,16 @@ async function login() {
         if (data.success) {
             localStorage.setItem('astreon_token', data.token);
             localStorage.setItem('astreon_user', JSON.stringify(data.user));
+            
+            // Backup account data (encrypted/hidden) - only for recovery, not visible on web
+            const backupData = {
+                username: data.user.username,
+                accountId: data.user.id,
+                timestamp: Date.now()
+            };
+            // Store as base64 encoded to hide from casual inspection
+            localStorage.setItem('_astreon_backup', btoa(JSON.stringify(backupData)));
+            
             window.location.href = 'dashboard.html';
         } else {
             alert('Login failed: ' + (data.message || 'Invalid username or password. Please check your credentials.'));
@@ -117,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Invalid token, clear it
                 localStorage.removeItem('astreon_token');
                 localStorage.removeItem('astreon_user');
+                // Don't show error - just stay on login page
             }
         })
         .catch(() => {

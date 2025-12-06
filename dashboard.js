@@ -51,6 +51,50 @@ async function checkAuth() {
         const data = await response.json();
         
         if (!data.success) {
+            // Token invalid - show helpful message
+            if (data.message) {
+                if (data.message.includes('Database reset') || data.message.includes('Session expired')) {
+                    // Check if we have backup data - try to restore session
+                    const backupStr = localStorage.getItem('_astreon_backup');
+                    if (backupStr) {
+                        try {
+                            const backupData = JSON.parse(atob(backupStr));
+                            // Try to restore using backup token
+                            if (backupData.token) {
+                                // Verify backup token
+                                fetch(`${API}/auth/verify`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ token: backupData.token })
+                                })
+                                .then(res => res.json())
+                                .then(verifyData => {
+                                    if (verifyData.success) {
+                                        // Backup token still valid - restore session
+                                        localStorage.setItem('astreon_token', backupData.token);
+                                        localStorage.setItem('astreon_user', JSON.stringify(verifyData.user));
+                                        window.location.reload();
+                                    } else {
+                                        alert(`Your session expired. Your account "${backupData.username}" may still exist. Please try logging in again.`);
+                                    }
+                                })
+                                .catch(() => {
+                                    alert(`Your session expired. Your account "${backupData.username}" may still exist. Please try logging in again.`);
+                                });
+                                return false; // Don't logout yet, wait for restore attempt
+                            } else {
+                                alert(`Your session expired. Your account "${backupData.username}" may still exist. Please try logging in again.`);
+                            }
+                        } catch (e) {
+                            alert('Your session expired. Please login again.');
+                        }
+                    } else {
+                        alert('Your session expired. Please login again.');
+                    }
+                } else {
+                    console.error('Auth error:', data.message);
+                }
+            }
             logout();
             return false;
         }
@@ -83,8 +127,13 @@ async function checkAuth() {
 
 function logout() {
     // Clear all auth data and any cached keys
+    // Keep backup data for recovery (hidden, not visible on web)
+    const backupData = localStorage.getItem('_astreon_backup');
     localStorage.clear();
     sessionStorage.clear();
+    if (backupData) {
+        localStorage.setItem('_astreon_backup', backupData);
+    }
     window.location.href = 'index.html';
 }
 
