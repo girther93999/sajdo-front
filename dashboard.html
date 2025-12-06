@@ -36,6 +36,9 @@
                 <button class="nav-item" onclick="showTab('credentials')">
                     <i class="fas fa-user-shield"></i> Credentials
                 </button>
+                <button class="nav-item" onclick="showTab('examples')">
+                    <i class="fas fa-code"></i> Examples
+                </button>
             </div>
         </div>
 
@@ -161,6 +164,115 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- Examples Tab -->
+            <div id="examples-tab" class="tab-content">
+                <div class="page-header">
+                    <div>
+                        <h1><i class="fas fa-code"></i> Integration Examples</h1>
+                        <p>Copy-paste ready code for your C++ project</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 style="margin-bottom: 16px; color: #c9d1d9;"><i class="fas fa-file-code"></i> Complete main.cpp</h3>
+                    <p style="color: #8b949e; margin-bottom: 16px;">Copy this entire code into your main.cpp file:</p>
+                    <div class="code-block-wrapper">
+                        <div class="code-header">
+                            <span>main.cpp</span>
+                            <button class="btn-copy-code" onclick="copyCode('main-cpp')"><i class="fas fa-copy"></i> Copy</button>
+                        </div>
+                        <pre id="main-cpp" class="code-block"><code>// Astreon Auth - Complete Example
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include "auth_client.h"
+
+int main() {
+    // ============================================
+    // YOUR CREDENTIALS (from Credentials tab)
+    // ============================================
+    std::string ACCOUNT_ID = "<span id="example-account-id">YOUR_ACCOUNT_ID</span>";
+    std::string API_TOKEN = "<span id="example-api-token">YOUR_API_TOKEN</span>";
+    
+    // ============================================
+    // SETUP AUTH CLIENT
+    // ============================================
+    AuthClient auth("https://answub-back.onrender.com");
+    auth.setCredentials(ACCOUNT_ID, API_TOKEN);
+    
+    // ============================================
+    // GET LICENSE KEY FROM USER
+    // ============================================
+    std::string key;
+    std::cout << "Enter license key: ";
+    std::getline(std::cin, key);
+    
+    // ============================================
+    // VALIDATE KEY
+    // ============================================
+    if (auth.validateKey(key)) {
+        std::cout << "\n✓ SUCCESS - Key is valid!\n";
+        std::cout << "HWID: " << auth.getHWID() << "\n";
+        
+        // YOUR APPLICATION CODE HERE
+        std::cout << "Welcome! Starting application...\n";
+        
+    } else {
+        std::cout << "\n✗ FAILED: " << auth.getLastError() << "\n";
+        return 1;
+    }
+    
+    return 0;
+}</code></pre>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 style="margin-bottom: 16px; color: #c9d1d9;"><i class="fas fa-file"></i> Required Files</h3>
+                    <p style="color: #8b949e; margin-bottom: 20px;">Download these 2 files and add them to your project:</p>
+                    
+                    <div class="file-list">
+                        <div class="file-item">
+                            <div class="file-info">
+                                <i class="fas fa-file-code"></i>
+                                <div>
+                                    <strong>auth_client.h</strong>
+                                    <span>Header file - Include this in your project</span>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <button class="btn-view" onclick="showFile('auth_client.h')"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-download" onclick="downloadFile('auth_client.h')"><i class="fas fa-download"></i> Download</button>
+                            </div>
+                        </div>
+                        
+                        <div class="file-item">
+                            <div class="file-info">
+                                <i class="fas fa-file-code"></i>
+                                <div>
+                                    <strong>auth_client.cpp</strong>
+                                    <span>Implementation file - Add to your project</span>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <button class="btn-view" onclick="showFile('auth_client.cpp')"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-download" onclick="downloadFile('auth_client.cpp')"><i class="fas fa-download"></i> Download</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 style="margin-bottom: 16px; color: #c9d1d9;"><i class="fas fa-info-circle"></i> Quick Start Guide</h3>
+                    <ol class="guide-list">
+                        <li>Download <code>auth_client.h</code> and <code>auth_client.cpp</code> above</li>
+                        <li>Add both files to your Visual Studio project (or your IDE)</li>
+                        <li>Copy the <code>main.cpp</code> code above</li>
+                        <li>Replace <code>YOUR_ACCOUNT_ID</code> and <code>YOUR_API_TOKEN</code> with your credentials</li>
+                        <li>Build and run!</li>
+                    </ol>
                 </div>
             </div>
 

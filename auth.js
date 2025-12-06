@@ -15,12 +15,13 @@ function showLogin() {
 }
 
 async function register() {
+    const inviteCode = document.getElementById('register-invite').value.trim();
     const username = document.getElementById('register-username').value.trim();
     const email = document.getElementById('register-email').value.trim();
     const password = document.getElementById('register-password').value;
     
-    if (!username || !email || !password) {
-        alert('All fields are required');
+    if (!inviteCode || !username || !email || !password) {
+        alert('All fields are required, including invite code');
         return;
     }
     
@@ -33,7 +34,7 @@ async function register() {
         const response = await fetch(`${API}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password })
+            body: JSON.stringify({ username, email, password, inviteCode })
         });
         
         const data = await response.json();

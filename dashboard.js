@@ -63,8 +63,16 @@ async function checkAuth() {
         document.getElementById('account-username').textContent = currentUser.username;
         
         // Update code examples
-        document.getElementById('code-account-id').textContent = currentUser.id;
-        document.getElementById('code-api-token').textContent = currentToken;
+        const codeAccountId = document.getElementById('code-account-id');
+        const codeApiToken = document.getElementById('code-api-token');
+        if (codeAccountId) codeAccountId.textContent = currentUser.id;
+        if (codeApiToken) codeApiToken.textContent = currentToken;
+        
+        // Update examples tab
+        const exampleAccountId = document.getElementById('example-account-id');
+        const exampleApiToken = document.getElementById('example-api-token');
+        if (exampleAccountId) exampleAccountId.textContent = currentUser.id;
+        if (exampleApiToken) exampleApiToken.textContent = currentToken;
         
         return true;
     } catch (error) {
@@ -384,6 +392,105 @@ function showTab(tabName) {
     } else if (tabName === 'overview') {
         loadStats();
     }
+}
+
+// Copy code to clipboard
+function copyCode(elementId) {
+    const codeElement = document.getElementById(elementId);
+    // Get text content (strips HTML tags)
+    const text = codeElement.textContent || codeElement.innerText;
+    
+    // Replace placeholders with actual values
+    let finalText = text;
+    if (currentUser && currentUser.id) {
+        finalText = finalText.replace(/YOUR_ACCOUNT_ID/g, currentUser.id);
+    }
+    if (currentToken) {
+        finalText = finalText.replace(/YOUR_API_TOKEN/g, currentToken);
+    }
+    
+    navigator.clipboard.writeText(finalText).then(() => {
+        // Show success notification
+        const notification = document.createElement('div');
+        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #0d1117; border: 1px solid #3fb950; color: #3fb950; padding: 16px 24px; border-radius: 8px; z-index: 10001; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
+        notification.innerHTML = '<i class="fas fa-check-circle"></i> Code copied to clipboard!';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }).catch(() => {
+        alert('Failed to copy. Please select and copy manually.');
+    });
+}
+
+// Show file content in modal
+async function showFile(filename) {
+    try {
+        const response = await fetch(`/${filename}`);
+        if (!response.ok) {
+            // If file not found on server, show instructions
+            alert(`To view ${filename}:\n\n1. Go to your local project folder\n2. Open ${filename} in your editor\n\nThese files are in the root of your Astreon auth folder.`);
+            return;
+        }
+        
+        const content = await response.text();
+        
+        // Create modal to display file
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 90%; max-height: 90vh; overflow: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #30363d;">
+                    <h2 style="margin: 0; color: #c9d1d9;"><i class="fas fa-file-code"></i> ${filename}</h2>
+                    <button onclick="this.closest('.modal').remove()" style="background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+                <pre style="background: #0d1117; padding: 20px; border-radius: 8px; overflow-x: auto; border: 1px solid #30363d;"><code style="color: #c9d1d9; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6;">${escapeHtml(content)}</code></pre>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Close on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    } catch (error) {
+        alert(`To view ${filename}:\n\n1. Go to your local project folder\n2. Open ${filename} in your editor\n\nThese files are in the root of your Astreon auth folder.`);
+    }
+}
+
+// Escape HTML for safe display
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Download file
+function downloadFile(filename) {
+    // Try to download from server
+    const link = document.createElement('a');
+    link.href = `/${filename}`;
+    link.download = filename;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    
+    link.onerror = () => {
+        document.body.removeChild(link);
+        alert(`To download ${filename}:\n\n1. Go to your local project folder\n2. Copy ${filename}\n3. Add it to your C++ project\n\nThese files are in the root of your Astreon auth folder.`);
+    };
+    
+    link.click();
+    
+    // Remove link after a moment
+    setTimeout(() => {
+        if (document.body.contains(link)) {
+            document.body.removeChild(link);
+        }
+    }, 100);
 }
 
 // Initialize on page load
