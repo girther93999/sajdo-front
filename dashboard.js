@@ -1,6 +1,4 @@
-const API = window.location.hostname === 'localhost' 
-    ? 'http://localhost:3000/api'
-    : '/api';
+const API = 'https://answub-back.onrender.com/api';
 
 let currentModalKey = '';
 let currentToken = '';
