@@ -178,7 +178,7 @@
                 
                 <div class="card">
                     <h3 style="margin-bottom: 16px; color: #c9d1d9;"><i class="fas fa-file-code"></i> Complete main.cpp</h3>
-                    <p style="color: #8b949e; margin-bottom: 16px;">Copy this entire code into your main.cpp file:</p>
+                    <p style="color: #8b949e; margin-bottom: 16px;">Copy this entire code into your main.cpp file. All protection features are built-in!</p>
                     <div class="code-block-wrapper">
                         <div class="code-header">
                             <span>main.cpp</span>
@@ -197,15 +197,20 @@ int main() {
     AuthClient auth("https://answub-back.onrender.com");
     auth.setCredentials(ACCOUNT_ID, API_TOKEN);
     
+    // check server connection
+    if (!auth.checkServer()) {
+        std::cout << "Server offline: " << auth.getLastError() << "\n";
+        return 1;
+    }
+    
     // get key from user
     std::string key;
     std::cout << "Enter license key: ";
     std::getline(std::cin, key);
     
-    // check if key is valid
+    // validate key (includes all protection features)
     if (auth.validateKey(key)) {
-        std::cout << "\nKey is valid!\n";
-        std::cout << "HWID: " << auth.getHWID() << "\n";
+        std::cout << "\nLicense validated!\n";
         
         // put your app code here
         std::cout << "Starting application...\n";
@@ -222,7 +227,7 @@ int main() {
                 
                 <div class="card">
                     <h3 style="margin-bottom: 16px; color: #c9d1d9;"><i class="fas fa-file"></i> Required Files</h3>
-                    <p style="color: #8b949e; margin-bottom: 20px;">Download these 2 files and add them to your project:</p>
+                    <p style="color: #8b949e; margin-bottom: 20px;">Download these 2 files - all protection features are included (encryption, anti-hook, memory protection, etc.):</p>
                     
                     <div class="file-list">
                         <div class="file-item">
@@ -261,9 +266,39 @@ int main() {
                         <li>Download <code>auth_client.h</code> and <code>auth_client.cpp</code> above</li>
                         <li>Add both files to your Visual Studio project (or your IDE)</li>
                         <li>Copy the <code>main.cpp</code> code above</li>
-                        <li>Replace <code>YOUR_ACCOUNT_ID</code> and <code>YOUR_API_TOKEN</code> with your credentials</li>
-                        <li>Build and run!</li>
+                        <li>Replace <code>YOUR_ACCOUNT_ID</code> and <code>YOUR_API_TOKEN</code> with your credentials from the Credentials tab</li>
+                        <li>Build and run! All protection features are built-in.</li>
                     </ol>
+                </div>
+                
+                <div class="card" style="background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%); border: 1px solid #30363d;">
+                    <h3 style="margin-bottom: 16px; color: #c9d1d9;"><i class="fas fa-shield-alt"></i> Built-in Protection Features</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                        <div style="padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                            <div style="color: #60a5fa; font-weight: 600; margin-bottom: 4px;"><i class="fas fa-lock"></i> Multi-layer Encryption</div>
+                            <div style="color: #8b949e; font-size: 13px;">XOR + Base64 encryption for all sensitive data</div>
+                        </div>
+                        <div style="padding: 12px; background: rgba(16, 185, 129, 0.1); border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                            <div style="color: #34d399; font-weight: 600; margin-bottom: 4px;"><i class="fas fa-ban"></i> Anti-Hook Detection</div>
+                            <div style="color: #8b949e; font-size: 13px;">Detects function hooks and tampering</div>
+                        </div>
+                        <div style="padding: 12px; background: rgba(245, 158, 11, 0.1); border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.2);">
+                            <div style="color: #fbbf24; font-weight: 600; margin-bottom: 4px;"><i class="fas fa-memory"></i> Memory Protection</div>
+                            <div style="color: #8b949e; font-size: 13px;">Secure memory clearing to prevent leaks</div>
+                        </div>
+                        <div style="padding: 12px; background: rgba(239, 68, 68, 0.1); border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                            <div style="color: #f87171; font-weight: 600; margin-bottom: 4px;"><i class="fas fa-clock"></i> Time Validation</div>
+                            <div style="color: #8b949e; font-size: 13px;">Prevents time tampering attacks</div>
+                        </div>
+                        <div style="padding: 12px; background: rgba(139, 92, 246, 0.1); border-radius: 6px; border: 1px solid rgba(139, 92, 246, 0.2);">
+                            <div style="color: #a78bfa; font-weight: 600; margin-bottom: 4px;"><i class="fas fa-check-circle"></i> Code Integrity</div>
+                            <div style="color: #8b949e; font-size: 13px;">Checksum verification for code integrity</div>
+                        </div>
+                        <div style="padding: 12px; background: rgba(236, 72, 153, 0.1); border-radius: 6px; border: 1px solid rgba(236, 72, 153, 0.2);">
+                            <div style="color: #f472b6; font-weight: 600; margin-bottom: 4px;"><i class="fas fa-eye-slash"></i> Request Obfuscation</div>
+                            <div style="color: #8b949e; font-size: 13px;">Obfuscated endpoints to confuse reverse engineers</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

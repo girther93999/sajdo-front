@@ -454,10 +454,17 @@ function copyCode(elementId) {
 // Show file content in modal
 async function showFile(filename) {
     try {
-        const response = await fetch(`/${filename}`);
+        // Try to fetch from current domain first (frontend deployment)
+        let response = await fetch(`/${filename}`);
+        
+        // If not found, try backend
         if (!response.ok) {
-            // If file not found on server, show instructions
-            alert(`To view ${filename}:\n\n1. Go to your local project folder\n2. Open ${filename} in your editor\n\nThese files are in the root of your Astreon auth folder.`);
+            response = await fetch(`${API.replace('/api', '')}/${filename}`);
+        }
+        
+        if (!response.ok) {
+            // If still not found, show instructions
+            alert(`To view ${filename}:\n\n1. Go to your local project folder\n2. Open ${filename} in your editor\n\nThese files are in the frontend folder.`);
             return;
         }
         
@@ -497,27 +504,38 @@ function escapeHtml(text) {
 }
 
 // Download file
-function downloadFile(filename) {
-    // Try to download from server
-    const link = document.createElement('a');
-    link.href = `/${filename}`;
-    link.download = filename;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    
-    link.onerror = () => {
-        document.body.removeChild(link);
-        alert(`To download ${filename}:\n\n1. Go to your local project folder\n2. Copy ${filename}\n3. Add it to your C++ project\n\nThese files are in the root of your Astreon auth folder.`);
-    };
-    
-    link.click();
-    
-    // Remove link after a moment
-    setTimeout(() => {
-        if (document.body.contains(link)) {
-            document.body.removeChild(link);
+async function downloadFile(filename) {
+    try {
+        // Try to fetch from current domain first (frontend deployment)
+        let response = await fetch(`/${filename}`);
+        
+        // If not found, try backend
+        if (!response.ok) {
+            response = await fetch(`${API.replace('/api', '')}/${filename}`);
         }
-    }, 100);
+        
+        if (!response.ok) {
+            alert(`To download ${filename}:\n\n1. Go to your local project folder\n2. Copy ${filename} from the frontend folder\n3. Add it to your C++ project`);
+            return;
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        setTimeout(() => {
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }, 100);
+    } catch (error) {
+        alert(`To download ${filename}:\n\n1. Go to your local project folder\n2. Copy ${filename} from the frontend folder\n3. Add it to your C++ project`);
+    }
 }
 
 // Initialize on page load
