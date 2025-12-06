@@ -362,10 +362,33 @@ document.getElementById('addTimeModal')?.addEventListener('click', function(e) {
     }
 });
 
+// Tab navigation
+function showTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Update nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Load data if needed
+    if (tabName === 'keys') {
+        loadKeys();
+    } else if (tabName === 'overview') {
+        loadStats();
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     if (await checkAuth()) {
-        loadKeys();
         loadStats();
     }
 });
