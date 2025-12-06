@@ -74,10 +74,11 @@ async function login() {
             localStorage.setItem('astreon_user', JSON.stringify(data.user));
             window.location.href = 'dashboard.html';
         } else {
-            alert(data.message);
+            alert('Login failed: ' + (data.message || 'Invalid username or password. Please check your credentials.'));
         }
     } catch (error) {
-        alert('Connection error. Server may be offline.');
+        console.error('Login error:', error);
+        alert('Connection error. Server may be offline. Please check your internet connection and try again.');
     }
 }
 
