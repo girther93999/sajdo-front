@@ -330,11 +330,11 @@ if (auth.validateKey(userKey)) {
     </div>
 
     <!-- Modal for Add Time -->
-    <div id="addTimeModal" class="modal">
-        <div class="modal-content">
+    <div id="addTimeModal" class="modal" style="display: none;">
+        <div class="modal-content" onclick="event.stopPropagation();">
             <div class="modal-header">
                 <h3>Add Time to Key</h3>
-                <button class="modal-close" onclick="closeAddTimeModal()">&times;</button>
+                <button class="modal-close" onclick="closeAddTimeModal()" type="button">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="modal-key-display">

@@ -268,14 +268,24 @@ async function loadKeys() {
 
 // Open add time modal
 function openAddTimeModal(key) {
+    if (!key) return;
     currentModalKey = key;
-    document.getElementById('modal-key').textContent = key;
-    document.getElementById('addTimeModal').classList.add('active');
+    const modal = document.getElementById('addTimeModal');
+    const modalKey = document.getElementById('modal-key');
+    if (modal && modalKey) {
+        modalKey.textContent = key;
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+    }
 }
 
 // Close add time modal
 function closeAddTimeModal() {
-    document.getElementById('addTimeModal').classList.remove('active');
+    const modal = document.getElementById('addTimeModal');
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+    }
     currentModalKey = '';
 }
 
@@ -364,9 +374,26 @@ async function deleteKey(key) {
 }
 
 // Close modal when clicking outside
-document.getElementById('addTimeModal')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeAddTimeModal();
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('addTimeModal');
+    if (modal) {
+        // Ensure modal is hidden on page load
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+        
+        // Close when clicking outside
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeAddTimeModal();
+            }
+        });
+        
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeAddTimeModal();
+            }
+        });
     }
 });
 
