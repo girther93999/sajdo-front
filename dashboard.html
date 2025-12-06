@@ -184,43 +184,34 @@
                             <span>main.cpp</span>
                             <button class="btn-copy-code" onclick="copyCode('main-cpp')"><i class="fas fa-copy"></i> Copy</button>
                         </div>
-                        <pre id="main-cpp" class="code-block"><code>// Astreon Auth - Complete Example
-#include &lt;iostream&gt;
+                        <pre id="main-cpp" class="code-block"><code>#include &lt;iostream&gt;
 #include &lt;string&gt;
 #include "auth_client.h"
 
 int main() {
-    // ============================================
-    // YOUR CREDENTIALS (from Credentials tab)
-    // ============================================
+    // get these from the credentials tab
     std::string ACCOUNT_ID = "<span id="example-account-id">YOUR_ACCOUNT_ID</span>";
     std::string API_TOKEN = "<span id="example-api-token">YOUR_API_TOKEN</span>";
     
-    // ============================================
-    // SETUP AUTH CLIENT
-    // ============================================
+    // setup the auth client
     AuthClient auth("https://answub-back.onrender.com");
     auth.setCredentials(ACCOUNT_ID, API_TOKEN);
     
-    // ============================================
-    // GET LICENSE KEY FROM USER
-    // ============================================
+    // get key from user
     std::string key;
     std::cout << "Enter license key: ";
     std::getline(std::cin, key);
     
-    // ============================================
-    // VALIDATE KEY
-    // ============================================
+    // check if key is valid
     if (auth.validateKey(key)) {
-        std::cout << "\n✓ SUCCESS - Key is valid!\n";
+        std::cout << "\nKey is valid!\n";
         std::cout << "HWID: " << auth.getHWID() << "\n";
         
-        // YOUR APPLICATION CODE HERE
-        std::cout << "Welcome! Starting application...\n";
+        // put your app code here
+        std::cout << "Starting application...\n";
         
     } else {
-        std::cout << "\n✗ FAILED: " << auth.getLastError() << "\n";
+        std::cout << "\nInvalid key: " << auth.getLastError() << "\n";
         return 1;
     }
     
@@ -311,17 +302,14 @@ int main() {
                     
                     <div class="code-example">
                         <h3><i class="fas fa-code"></i> Integration Code</h3>
-                        <pre><code>// Your Account Credentials
-std::string ACCOUNT_ID = "<span id="code-account-id">YOUR_ACCOUNT_ID</span>";
+                        <pre><code>std::string ACCOUNT_ID = "<span id="code-account-id">YOUR_ACCOUNT_ID</span>";
 std::string API_TOKEN = "<span id="code-api-token">YOUR_API_TOKEN</span>";
 
-// Setup
 AuthClient auth("https://answub-back.onrender.com");
 auth.setCredentials(ACCOUNT_ID, API_TOKEN);
 
-// Validate
 if (auth.validateKey(userKey)) {
-    // Success!
+    // key is valid
 }</code></pre>
                     </div>
                 </div>
