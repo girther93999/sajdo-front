@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Astreon Auth</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,16 +25,16 @@
             <div class="sidebar-section">
                 <h3>Navigation</h3>
                 <button class="nav-item active" onclick="showTab('overview')">
-                    <span>📊</span> Overview
+                    <i class="fas fa-chart-line"></i> Overview
                 </button>
                 <button class="nav-item" onclick="showTab('generate')">
-                    <span>🔑</span> Generate Key
+                    <i class="fas fa-key"></i> Generate Key
                 </button>
                 <button class="nav-item" onclick="showTab('keys')">
-                    <span>📋</span> My Keys
+                    <i class="fas fa-list"></i> My Keys
                 </button>
                 <button class="nav-item" onclick="showTab('credentials')">
-                    <span>🔐</span> Credentials
+                    <i class="fas fa-user-shield"></i> Credentials
                 </button>
             </div>
         </div>
@@ -42,34 +43,36 @@
             <!-- Overview Tab -->
             <div id="overview-tab" class="tab-content active">
                 <div class="page-header">
-                    <h1>Overview</h1>
-                    <p>Your account statistics and quick actions</p>
+                    <div>
+                        <h1><i class="fas fa-chart-line"></i> Overview</h1>
+                        <p>Your account statistics and quick actions</p>
+                    </div>
                 </div>
                 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">📊</div>
+                        <div class="stat-icon"><i class="fas fa-key"></i></div>
                         <div class="stat-info">
                             <div class="stat-value" id="stat-total">0</div>
                             <div class="stat-label">Total Keys</div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">✅</div>
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
                         <div class="stat-info">
                             <div class="stat-value" id="stat-active">0</div>
                             <div class="stat-label">Active Keys</div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">🔒</div>
+                        <div class="stat-icon"><i class="fas fa-lock"></i></div>
                         <div class="stat-info">
                             <div class="stat-value" id="stat-used">0</div>
                             <div class="stat-label">Used Keys</div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">⏰</div>
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
                         <div class="stat-info">
                             <div class="stat-value" id="stat-expired">0</div>
                             <div class="stat-label">Expired</div>
@@ -81,8 +84,10 @@
             <!-- Generate Tab -->
             <div id="generate-tab" class="tab-content">
                 <div class="page-header">
-                    <h1>Generate License Key</h1>
-                    <p>Create new license keys with custom formats</p>
+                    <div>
+                        <h1><i class="fas fa-magic"></i> Generate License Key</h1>
+                        <p>Create new license keys with custom formats</p>
+                    </div>
                 </div>
                 
                 <div class="card">
@@ -112,14 +117,14 @@
                             </div>
                         </div>
                         
-                        <button type="submit" class="btn-primary btn-large">Generate Key</button>
+                        <button type="submit" class="btn-primary btn-large"><i class="fas fa-magic"></i> Generate Key</button>
                     </form>
                     
                     <div id="generated-result" class="result-box" style="display: none;">
                         <div class="result-header">✓ Key Generated Successfully</div>
                         <div class="result-key">
                             <code id="generated-key"></code>
-                            <button class="btn-icon" onclick="copyKey()" title="Copy">📋</button>
+                            <button class="btn-icon" onclick="copyKey()" title="Copy"><i class="fas fa-copy"></i></button>
                         </div>
                         <div class="result-info" id="key-info"></div>
                     </div>
@@ -129,8 +134,11 @@
             <!-- Keys Tab -->
             <div id="keys-tab" class="tab-content">
                 <div class="page-header">
-                    <h1>My License Keys</h1>
-                    <button class="btn-secondary" onclick="loadKeys()">🔄 Refresh</button>
+                    <div>
+                        <h1><i class="fas fa-list"></i> My License Keys</h1>
+                        <p>Manage and track all your generated keys</p>
+                    </div>
+                    <button class="btn-secondary" onclick="loadKeys()"><i class="fas fa-sync-alt"></i> Refresh</button>
                 </div>
                 
                 <div class="card">
@@ -159,8 +167,10 @@
             <!-- Credentials Tab -->
             <div id="credentials-tab" class="tab-content">
                 <div class="page-header">
-                    <h1>Account Credentials</h1>
-                    <p>Use these in your C++ application</p>
+                    <div>
+                        <h1><i class="fas fa-user-shield"></i> Account Credentials</h1>
+                        <p>Use these in your C++ application</p>
+                    </div>
                 </div>
                 
                 <div class="card">
@@ -169,14 +179,14 @@
                             <div class="credential-label">Account ID</div>
                             <div class="credential-value">
                                 <code id="account-id"></code>
-                                <button class="btn-icon" onclick="copyCredential('account-id')">📋</button>
+                                <button class="btn-icon" onclick="copyCredential('account-id')"><i class="fas fa-copy"></i></button>
                             </div>
                         </div>
                         <div class="credential-item">
                             <div class="credential-label">API Token</div>
                             <div class="credential-value">
                                 <code id="api-token"></code>
-                                <button class="btn-icon" onclick="copyCredential('api-token')">📋</button>
+                                <button class="btn-icon" onclick="copyCredential('api-token')"><i class="fas fa-copy"></i></button>
                             </div>
                         </div>
                         <div class="credential-item">
@@ -188,7 +198,7 @@
                     </div>
                     
                     <div class="code-example">
-                        <h3>Integration Code</h3>
+                        <h3><i class="fas fa-code"></i> Integration Code</h3>
                         <pre><code>// Your Account Credentials
 std::string ACCOUNT_ID = "<span id="code-account-id">YOUR_ACCOUNT_ID</span>";
 std::string API_TOKEN = "<span id="code-api-token">YOUR_API_TOKEN</span>";
@@ -234,7 +244,7 @@ if (auth.validateKey(userKey)) {
                         <input type="number" id="modal-amount" min="1" value="1">
                     </div>
                 </div>
-                <button class="btn-primary" onclick="addTime()">Add Time</button>
+                <button class="btn-primary" onclick="addTime()"><i class="fas fa-clock"></i> Add Time</button>
             </div>
         </div>
     </div>
