@@ -1021,6 +1021,58 @@ td code {
     text-decoration: underline;
 }
 
+/* Files Grid */
+.files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.file-card {
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s;
+}
+
+.file-card:hover {
+    border-color: #2a2a2a;
+    transform: translateY(-2px);
+}
+
+.file-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111111;
+    border-radius: 6px;
+    border: 1px solid #1a1a1a;
+    color: #888888;
+    font-size: 1.5rem;
+}
+
+.file-info {
+    flex: 1;
+}
+
+.file-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.file-desc {
+    font-size: 0.75rem;
+    color: #888888;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .dashboard-container {

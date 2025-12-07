@@ -326,6 +326,43 @@ if (auth.validateKey(userKey)) {
                         </div>
                     </div>
                 </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Download Files</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="form-hint" style="margin-bottom: 1.5rem;">Download the required files for integration:</p>
+                        <div class="files-grid">
+                            <div class="file-card">
+                                <div class="file-icon">
+                                    <i class="fas fa-file-code"></i>
+                                </div>
+                                <div class="file-info">
+                                    <div class="file-name">auth_client.h</div>
+                                    <div class="file-desc">Header file with AuthClient class</div>
+                                </div>
+                                <button class="btn btn-primary" onclick="downloadFile('auth_client.h')">
+                                    <i class="fas fa-download"></i>
+                                    <span>Download</span>
+                                </button>
+                            </div>
+                            <div class="file-card">
+                                <div class="file-icon">
+                                    <i class="fas fa-file-code"></i>
+                                </div>
+                                <div class="file-info">
+                                    <div class="file-name">auth_client.cpp</div>
+                                    <div class="file-desc">Implementation file</div>
+                                </div>
+                                <button class="btn btn-primary" onclick="downloadFile('auth_client.cpp')">
+                                    <i class="fas fa-download"></i>
+                                    <span>Download</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Messages Tab -->
