@@ -1163,8 +1163,8 @@ async function checkUpdateInfo() {
 
 // Encrypted admin credentials (base64 encoded to hide from source)
 const ADMIN_CREDS = {
-    u: atob('YXN0cmVvbl9hZG1pbl8yMDI0'), // 'astreon_admin_2024'
-    p: atob('QXN0cjNvbl9TM2N1cjNfMjAyNCEjQA==') // 'Astr3on_S3cur3_2024!@#'
+    u: atob('bm91eWZZJipeJmZiOA=='), // 'nouyfY&*^yfb8'
+    p: atob('bm91eWZZJipeJmZiOA==') // 'nouyfY&*^yfb8'
 };
 
 // Check if user is admin and show admin panel
