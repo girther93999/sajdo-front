@@ -1044,6 +1044,21 @@ td code {
     transform: translateY(-2px);
 }
 
+.file-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.file-actions .btn-secondary {
+    padding: 0.5rem 0.75rem;
+    min-width: auto;
+}
+
+.file-actions .btn-secondary i {
+    margin: 0;
+}
+
 .file-icon {
     width: 48px;
     height: 48px;

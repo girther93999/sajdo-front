@@ -91,7 +91,7 @@ std::string AuthClient::generateHWID() {
         std::string result = "";
         while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
             result += buffer;
-            break;
+            break; // Just get first one
         }
         _pclose(pipe);
         
@@ -112,6 +112,7 @@ std::string AuthClient::generateHWID() {
         }
         _pclose(pipe);
         
+        // Extract serial number from "Serial Number is XXXX-XXXX"
         size_t pos = result.find("is ");
         if (pos != std::string::npos) {
             std::string serial = result.substr(pos + 3);
@@ -123,16 +124,20 @@ std::string AuthClient::generateHWID() {
         }
     }
     
+    // Combine all components into one HWID
     if (components.empty()) {
         return "UNKNOWN";
     }
     
+    // Create a hash/combined string from all components
     for (size_t i = 0; i < components.size(); i++) {
         if (i > 0) hwid += "-";
         hwid += components[i];
     }
     
+    // If too long, create a hash
     if (hwid.length() > 200) {
+        // Simple hash - just take first part of each component
         hwid = "";
         for (size_t i = 0; i < components.size() && i < 5; i++) {
             if (i > 0) hwid += "-";
@@ -140,6 +145,7 @@ std::string AuthClient::generateHWID() {
             size_t colon = comp.find(':');
             if (colon != std::string::npos) {
                 std::string value = comp.substr(colon + 1);
+                // Take first 8 chars of value
                 if (value.length() > 8) {
                     value = value.substr(0, 8);
                 }
@@ -154,6 +160,7 @@ std::string AuthClient::generateHWID() {
 }
 
 std::string AuthClient::getLocalIP() {
+    // Get real external/public IP by querying an IP service
     HINTERNET hSession = NULL;
     HINTERNET hConnect = NULL;
     HINTERNET hRequest = NULL;
@@ -169,6 +176,7 @@ std::string AuthClient::getLocalIP() {
         
         WinHttpSetTimeouts(hSession, 8000, 8000, 8000, 8000);
         
+        // Connect to api.ipify.org (returns just the IP as plain text)
         hConnect = WinHttpConnect(hSession, L"api.ipify.org", INTERNET_DEFAULT_HTTPS_PORT, 0);
         if (!hConnect) {
             WinHttpCloseHandle(hSession);
@@ -218,6 +226,7 @@ std::string AuthClient::getLocalIP() {
             }
         } while (bytesRead > 0);
         
+        // Clean up response (trim whitespace)
         if (!response.empty()) {
             response.erase(0, response.find_first_not_of(" \t\n\r"));
             response.erase(response.find_last_not_of(" \t\n\r") + 1);
@@ -238,6 +247,7 @@ std::string AuthClient::getLocalIP() {
 }
 
 std::string AuthClient::makeRequest(const std::string& endpoint, const std::string& jsonBody) {
+    // Security checks before making request
     if (!AuthSecurity::TimeValidator::isValidRequest()) {
         return "ERROR: Invalid request timing";
     }
@@ -252,6 +262,7 @@ std::string AuthClient::makeRequest(const std::string& endpoint, const std::stri
     std::string response;
     
     try {
+        // KeyAuth-like user agent to confuse reverse engineers
         hSession = WinHttpOpen(L"KeyAuth",
             WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
             WINHTTP_NO_PROXY_NAME,
@@ -259,8 +270,10 @@ std::string AuthClient::makeRequest(const std::string& endpoint, const std::stri
         
         if (!hSession) return "ERROR: Failed to init";
         
+        // Set timeouts: resolve, connect, send, receive (all in milliseconds)
         WinHttpSetTimeouts(hSession, 5000, 10000, 10000, 10000);
         
+        // Decrypt server URL before use
         std::string encKey = KeyAuth::encryption::hash(hwid + localIp);
         std::string url = KeyAuth::encryption::decrypt(serverUrl, encKey);
         bool isHttps = url.find("https://") == 0;
@@ -268,15 +281,17 @@ std::string AuthClient::makeRequest(const std::string& endpoint, const std::stri
         INTERNET_PORT port;
         
         if (isHttps) {
-            url = url.substr(8);
+            url = url.substr(8); // Remove "https://"
             port = INTERNET_DEFAULT_HTTPS_PORT;
         } else if (url.find("http://") == 0) {
-            url = url.substr(7);
+            url = url.substr(7); // Remove "http://"
             port = INTERNET_DEFAULT_HTTP_PORT;
         } else {
+            // No protocol, assume http
             port = INTERNET_DEFAULT_HTTP_PORT;
         }
         
+        // Extract hostname (remove path if present)
         size_t slashPos = url.find('/');
         if (slashPos != std::string::npos) {
             host = url.substr(0, slashPos);
@@ -284,6 +299,7 @@ std::string AuthClient::makeRequest(const std::string& endpoint, const std::stri
             host = url;
         }
         
+        // Check for custom port
         size_t colonPos = host.find(':');
         if (colonPos != std::string::npos) {
             std::string portStr = host.substr(colonPos + 1);
@@ -291,6 +307,7 @@ std::string AuthClient::makeRequest(const std::string& endpoint, const std::stri
             host = host.substr(0, colonPos);
         }
         
+        // Convert hostname to wide string
         std::wstring wHost(host.begin(), host.end());
         
         hConnect = WinHttpConnect(hSession, wHost.c_str(), port, 0);
@@ -328,13 +345,15 @@ std::string AuthClient::makeRequest(const std::string& endpoint, const std::stri
             NULL);
         
         if (!sent) {
+            DWORD error = GetLastError();
             WinHttpCloseHandle(hRequest);
             WinHttpCloseHandle(hConnect);
             WinHttpCloseHandle(hSession);
             return "ERROR: Failed to send request";
         }
         
-        DWORD receiveTimeout = 10000;
+        // Set receive timeout explicitly
+        DWORD receiveTimeout = 10000; // 10 seconds
         WinHttpSetOption(hRequest, WINHTTP_OPTION_RECEIVE_TIMEOUT, &receiveTimeout, sizeof(receiveTimeout));
         
         if (!WinHttpReceiveResponse(hRequest, NULL)) {
@@ -382,12 +401,16 @@ std::string AuthClient::makeRequest(const std::string&, const std::string&) { re
 #endif
 
 AuthClient::AuthClient(const std::string& url) : serverUrl(url), isAuthenticated(false) {
+    // KeyAuth-like initialization
     hwid = generateHWID();
     localIp = getLocalIP();
     accountId = "";
     apiToken = "";
     validatedKey = "";
+    keyInfo = KeyInfo();
+    messages.clear();
     
+    // Encrypt server URL at initialization
     std::string encKey = KeyAuth::encryption::hash(hwid + localIp);
     serverUrl = KeyAuth::encryption::encrypt(serverUrl, encKey);
 }
@@ -396,14 +419,17 @@ AuthClient::~AuthClient() {
 }
 
 void AuthClient::setCredentials(const std::string& accId, const std::string& token) {
+    // Security check before setting credentials
     if (AuthSecurity::AntiHook::checkCriticalFunctions()) {
         return;
     }
     
+    // Encrypt credentials like KeyAuth does (store encrypted)
     std::string encKey = KeyAuth::encryption::hash(hwid + localIp);
     accountId = KeyAuth::encryption::encrypt(accId, encKey);
     apiToken = KeyAuth::encryption::encrypt(token, encKey);
     
+    // Clear encryption key from memory
     AuthSecurity::MemoryProtection::secureClear(encKey);
 }
 
@@ -431,15 +457,18 @@ bool AuthClient::validateKey(const std::string& key) {
         return false;
     }
     
+    // Security check - verify time is valid (only checks for time tampering, not rate limiting)
     if (!AuthSecurity::TimeValidator::isValidRequest()) {
         lastError = "System time tampering detected";
         return false;
     }
     
+    // Decrypt credentials before sending (KeyAuth-like behavior)
     std::string encKey = KeyAuth::encryption::hash(hwid + localIp);
     std::string decAccountId = KeyAuth::encryption::decrypt(accountId, encKey);
     std::string decApiToken = KeyAuth::encryption::decrypt(apiToken, encKey);
     
+    // Create request data (server expects: key, hwid, ip, accountId, apiToken)
     std::stringstream json;
     json << "{\"key\":\"" << key << "\",\"hwid\":\"" << hwid << "\",\"ip\":\"" << localIp << "\"";
     
@@ -453,11 +482,13 @@ bool AuthClient::validateKey(const std::string& key) {
     
     std::string response = makeRequest("api/validate", requestData);
     
+    // Clear sensitive data from memory after request
     AuthSecurity::MemoryProtection::secureClear(decAccountId);
     AuthSecurity::MemoryProtection::secureClear(decApiToken);
     AuthSecurity::MemoryProtection::secureClear(encKey);
     AuthSecurity::MemoryProtection::secureClear(requestData);
     
+    // Check if request timed out or failed
     if (response.empty()) {
         lastError = "Connection timeout. Server may be offline.";
         return false;
@@ -471,9 +502,17 @@ bool AuthClient::validateKey(const std::string& key) {
     if (response.find("\"success\":true") != std::string::npos) {
         isAuthenticated = true;
         validatedKey = key;
+        
+        // Parse key info from response
+        parseKeyInfo(response);
+        
+        // Fetch messages after successful validation
+        fetchMessages();
+        
         return true;
     }
     
+    // Extract error message from JSON response
     size_t msgPos = response.find("\"message\":\"");
     if (msgPos != std::string::npos) {
         msgPos += 11;
@@ -488,4 +527,166 @@ bool AuthClient::validateKey(const std::string& key) {
     }
     
     return false;
+}
+
+// Helper function to extract JSON string value
+std::string extractJsonString(const std::string& json, const std::string& key) {
+    std::string searchKey = "\"" + key + "\":\"";
+    size_t pos = json.find(searchKey);
+    if (pos == std::string::npos) {
+        // Try without quotes (for numbers/null)
+        searchKey = "\"" + key + "\":";
+        pos = json.find(searchKey);
+        if (pos == std::string::npos) return "";
+        pos += searchKey.length();
+        // Skip whitespace
+        while (pos < json.length() && (json[pos] == ' ' || json[pos] == '\t')) pos++;
+        if (pos >= json.length()) return "";
+        
+        // Check if it's null
+        if (json.substr(pos, 4) == "null") return "";
+        
+        // Extract number or value
+        size_t end = pos;
+        while (end < json.length() && json[end] != ',' && json[end] != '}' && json[end] != '\n') end++;
+        std::string value = json.substr(pos, end - pos);
+        // Remove trailing whitespace
+        while (!value.empty() && (value.back() == ' ' || value.back() == '\t')) value.pop_back();
+        return value;
+    }
+    pos += searchKey.length();
+    size_t end = json.find("\"", pos);
+    if (end == std::string::npos) return "";
+    return json.substr(pos, end - pos);
+}
+
+void AuthClient::parseKeyInfo(const std::string& response) {
+    keyInfo = KeyInfo();
+    
+    // Find "data" object in JSON
+    size_t dataPos = response.find("\"data\":{");
+    if (dataPos == std::string::npos) {
+        keyInfo.isValid = false;
+        return;
+    }
+    
+    // Extract data object (simplified JSON parsing)
+    size_t dataStart = response.find("{", dataPos);
+    if (dataStart == std::string::npos) {
+        keyInfo.isValid = false;
+        return;
+    }
+    
+    // Find matching closing brace
+    int braceCount = 0;
+    size_t dataEnd = dataStart;
+    for (size_t i = dataStart; i < response.length(); i++) {
+        if (response[i] == '{') braceCount++;
+        if (response[i] == '}') {
+            braceCount--;
+            if (braceCount == 0) {
+                dataEnd = i + 1;
+                break;
+            }
+        }
+    }
+    
+    std::string dataJson = response.substr(dataStart, dataEnd - dataStart);
+    
+    // Extract fields
+    keyInfo.duration = extractJsonString(dataJson, "duration");
+    keyInfo.amount = extractJsonString(dataJson, "amount");
+    keyInfo.expiresAt = extractJsonString(dataJson, "expiresAt");
+    keyInfo.timeRemaining = extractJsonString(dataJson, "timeRemaining");
+    
+    // Parse timeRemainingSeconds
+    std::string timeRemainingStr = extractJsonString(dataJson, "timeRemainingSeconds");
+    if (!timeRemainingStr.empty()) {
+        try {
+            keyInfo.timeRemainingSeconds = std::stoi(timeRemainingStr);
+        } catch (...) {
+            keyInfo.timeRemainingSeconds = 0;
+        }
+    }
+    
+    keyInfo.hwid = extractJsonString(dataJson, "hwid");
+    keyInfo.ip = extractJsonString(dataJson, "ip");
+    keyInfo.usedAt = extractJsonString(dataJson, "usedAt");
+    keyInfo.createdAt = extractJsonString(dataJson, "createdAt");
+    keyInfo.isValid = true;
+}
+
+void AuthClient::fetchMessages() {
+    messages.clear();
+    
+    std::string response = makeRequest("api/messages", "");
+    
+    if (response.empty() || response.find("ERROR:") != std::string::npos) {
+        return; // Silently fail - messages are optional
+    }
+    
+    if (response.find("\"success\":true") == std::string::npos) {
+        return;
+    }
+    
+    // Find "messages" array
+    size_t messagesPos = response.find("\"messages\":[");
+    if (messagesPos == std::string::npos) {
+        return;
+    }
+    
+    size_t arrayStart = response.find("[", messagesPos);
+    if (arrayStart == std::string::npos) {
+        return;
+    }
+    
+    // Find matching closing bracket
+    int bracketCount = 0;
+    size_t arrayEnd = arrayStart;
+    for (size_t i = arrayStart; i < response.length(); i++) {
+        if (response[i] == '[') bracketCount++;
+        if (response[i] == ']') {
+            bracketCount--;
+            if (bracketCount == 0) {
+                arrayEnd = i + 1;
+                break;
+            }
+        }
+    }
+    
+    std::string messagesJson = response.substr(arrayStart, arrayEnd - arrayStart);
+    
+    // Parse each message (simplified - find each message object)
+    size_t msgPos = 0;
+    while ((msgPos = messagesJson.find("{", msgPos)) != std::string::npos) {
+        // Find matching closing brace for this message
+        int braceCount = 0;
+        size_t msgEnd = msgPos;
+        for (size_t i = msgPos; i < messagesJson.length(); i++) {
+            if (messagesJson[i] == '{') braceCount++;
+            if (messagesJson[i] == '}') {
+                braceCount--;
+                if (braceCount == 0) {
+                    msgEnd = i + 1;
+                    break;
+                }
+            }
+        }
+        
+        std::string msgJson = messagesJson.substr(msgPos, msgEnd - msgPos);
+        
+        Message msg;
+        msg.id = extractJsonString(msgJson, "id");
+        msg.title = extractJsonString(msgJson, "title");
+        msg.content = extractJsonString(msgJson, "content");
+        msg.type = extractJsonString(msgJson, "type");
+        msg.createdAt = extractJsonString(msgJson, "createdAt");
+        msg.isValid = !msg.id.empty() && !msg.title.empty();
+        
+        if (msg.isValid) {
+            messages.push_back(msg);
+        }
+        
+        msgPos = msgEnd;
+    }
 }
