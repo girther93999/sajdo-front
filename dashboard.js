@@ -1091,7 +1091,13 @@ async function deleteInvite(invite) {
 
 async function uploadUpdate() {
     const fileInput = document.getElementById('update-file');
+    const versionInput = document.getElementById('update-version');
     const statusDiv = document.getElementById('upload-status');
+    
+    if (!versionInput.value || versionInput.value.trim() === '') {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">Please enter a version number</div>';
+        return;
+    }
     
     if (!fileInput.files || !fileInput.files[0]) {
         statusDiv.innerHTML = '<div style="color: #ef4444;">Please select a file</div>';
@@ -1112,6 +1118,7 @@ async function uploadUpdate() {
     
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('version', versionInput.value.trim());
     formData.append('username', username);
     formData.append('password', password);
     
@@ -1124,8 +1131,9 @@ async function uploadUpdate() {
         const data = await response.json();
         
         if (data.success) {
-            statusDiv.innerHTML = `<div style="color: #22c55e;">✅ Upload successful! File: ${data.filename}, Size: ${(data.size / 1024 / 1024).toFixed(2)} MB</div>`;
+            statusDiv.innerHTML = `<div style="color: #22c55e;">✅ Upload successful! Version: ${data.version}, File: ${data.filename}, Size: ${(data.size / 1024 / 1024).toFixed(2)} MB</div>`;
             fileInput.value = '';
+            versionInput.value = '';
             checkUpdateInfo();
         } else {
             statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${data.message}</div>`;
@@ -1148,6 +1156,7 @@ async function checkUpdateInfo() {
             infoDiv.innerHTML = `
                 <div style="color: #22c55e;">
                     <strong>✅ Update Available</strong><br>
+                    Version: ${data.version || 'N/A'}<br>
                     File: ${data.filename}<br>
                     Size: ${sizeMB} MB<br>
                     Uploaded: ${date}
