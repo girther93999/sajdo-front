@@ -168,6 +168,30 @@ async function loadStats() {
     }
 }
 
+// Load saved key generation preferences
+function loadKeyPreferences() {
+    const savedFormat = localStorage.getItem('astreon_key_format');
+    const savedDuration = localStorage.getItem('astreon_key_duration');
+    const savedAmount = localStorage.getItem('astreon_key_amount');
+    
+    if (savedFormat) {
+        document.getElementById('format').value = savedFormat;
+    }
+    if (savedDuration) {
+        document.getElementById('duration').value = savedDuration;
+    }
+    if (savedAmount) {
+        document.getElementById('amount').value = savedAmount;
+    }
+}
+
+// Save key generation preferences
+function saveKeyPreferences(format, duration, amount) {
+    localStorage.setItem('astreon_key_format', format);
+    localStorage.setItem('astreon_key_duration', duration);
+    localStorage.setItem('astreon_key_amount', amount);
+}
+
 // Generate key
 async function generateKey() {
     const format = document.getElementById('format').value;
@@ -178,6 +202,9 @@ async function generateKey() {
         alert('Format must include at least one * for random characters');
         return;
     }
+    
+    // Save preferences for next time
+    saveKeyPreferences(format, duration, amount);
     
     try {
         const response = await fetch(`${API}/keys/generate`, {
@@ -470,6 +497,10 @@ document.addEventListener('click', (e) => {
 
 // Tab navigation
 function showTab(tabName) {
+    // Load saved preferences when showing generate tab
+    if (tabName === 'generate') {
+        loadKeyPreferences();
+    }
     // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
@@ -1216,6 +1247,9 @@ function checkAdminAccess() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
+    // Load saved key generation preferences on page load
+    loadKeyPreferences();
+    
     if (await checkAuth()) {
         // Load overview stats by default
         loadStats();
