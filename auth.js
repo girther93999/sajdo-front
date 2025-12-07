@@ -48,7 +48,12 @@ async function register() {
             // Store as base64 encoded to hide from casual inspection
             localStorage.setItem('_astreon_backup', btoa(JSON.stringify(backupData)));
             
-            window.location.href = 'dashboard.html';
+            // Redirect based on account type
+            if (data.accountType === 'reseller') {
+                window.location.href = 'reseller.html';
+            } else {
+                window.location.href = 'dashboard.html';
+            }
         } else {
             alert(data.message);
         }
@@ -88,7 +93,12 @@ async function login() {
             // Store as base64 encoded to hide from casual inspection
             localStorage.setItem('_astreon_backup', btoa(JSON.stringify(backupData)));
             
-            window.location.href = 'dashboard.html';
+            // Redirect based on account type
+            if (data.accountType === 'reseller') {
+                window.location.href = 'reseller.html';
+            } else {
+                window.location.href = 'dashboard.html';
+            }
         } else {
             alert('Login failed: ' + (data.message || 'Invalid username or password. Please check your credentials.'));
         }
@@ -128,7 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                window.location.href = 'dashboard.html';
+                // Redirect based on account type
+                if (data.accountType === 'reseller') {
+                    window.location.href = 'reseller.html';
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
             } else {
                 // Invalid token, clear it
                 localStorage.removeItem('astreon_token');

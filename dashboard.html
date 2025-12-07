@@ -399,6 +399,20 @@ if (auth.validateKey(userKey)) {
                     </div>
                 </div>
 
+                <!-- Resellers Management -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Resellers</h2>
+                        <button class="btn btn-primary" onclick="showCreateResellerModal()">
+                            <i class="fas fa-plus"></i>
+                            <span>Create Reseller</span>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="admin-resellers-list" class="loading">Loading resellers...</div>
+                    </div>
+                </div>
+
                 <!-- Invites Management -->
                 <div class="card">
                     <div class="card-header">
@@ -478,6 +492,13 @@ if (auth.validateKey(userKey)) {
                     </div>
                     <div class="modal-body">
                         <div class="form-section">
+                            <label class="form-label">Account Type</label>
+                            <select id="new-user-account-type" class="form-input" onchange="toggleUserTypeFields()">
+                                <option value="user">Normal User</option>
+                                <option value="reseller">Reseller</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
                             <label class="form-label">Username</label>
                             <input type="text" id="new-user-username" placeholder="Enter username" class="form-input">
                         </div>
@@ -489,11 +510,93 @@ if (auth.validateKey(userKey)) {
                             <label class="form-label">Password</label>
                             <input type="password" id="new-user-password" placeholder="Enter password (min 6 chars)" class="form-input">
                         </div>
+                        <div id="reseller-fields" style="display: none;">
+                            <div class="form-section">
+                                <label class="form-label">Initial Balance ($)</label>
+                                <input type="number" id="new-user-balance" placeholder="0.00" step="0.01" min="0" value="0" class="form-input">
+                            </div>
+                            <div class="form-section">
+                                <label class="form-label">Allowed Products</label>
+                                <div style="margin-top: 0.5rem;">
+                                    <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                        <input type="checkbox" id="user-product-private" checked style="margin-right: 0.5rem;">
+                                        <span>Private</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center;">
+                                        <input type="checkbox" id="user-product-public" style="margin-right: 0.5rem;">
+                                        <span>Public (Coming Soon)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                         <button class="btn btn-primary" onclick="createUser()">
                             <i class="fas fa-user-plus"></i>
                             <span>Create User</span>
                         </button>
                         <div id="create-user-status" style="margin-top: 1rem;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Reseller Modal -->
+            <div id="createResellerModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Create Reseller Account</h3>
+                        <button class="modal-close" onclick="closeCreateResellerModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-section">
+                            <label class="form-label">Username</label>
+                            <input type="text" id="new-reseller-username" placeholder="Enter username" class="form-input">
+                        </div>
+                        <div class="form-section">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="new-reseller-email" placeholder="Enter email" class="form-input">
+                        </div>
+                        <div class="form-section">
+                            <label class="form-label">Password</label>
+                            <input type="password" id="new-reseller-password" placeholder="Enter password (min 6 chars)" class="form-input">
+                        </div>
+                        <div class="form-section">
+                            <label class="form-label">Initial Balance ($)</label>
+                            <input type="number" id="new-reseller-balance" placeholder="0.00" step="0.01" min="0" value="0" class="form-input">
+                        </div>
+                        <div class="form-section">
+                            <label class="form-label">Allowed Products</label>
+                            <div style="margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                    <input type="checkbox" id="reseller-product-private" checked style="margin-right: 0.5rem;">
+                                    <span>Private</span>
+                                </label>
+                                <label style="display: flex; align-items: center;">
+                                    <input type="checkbox" id="reseller-product-public" style="margin-right: 0.5rem;">
+                                    <span>Public (Coming Soon)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="createReseller()">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Create Reseller</span>
+                        </button>
+                        <div id="create-reseller-status" style="margin-top: 1rem;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manage Reseller Modal -->
+            <div id="manageResellerModal" class="modal">
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3 id="manage-reseller-title">Manage Reseller</h3>
+                        <button class="modal-close" onclick="closeManageResellerModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="manage-reseller-content" class="loading">Loading...</div>
                     </div>
                 </div>
             </div>

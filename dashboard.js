@@ -50,6 +50,12 @@ async function checkAuth() {
         
         const data = await response.json();
         
+        // Check if user is a reseller and redirect
+        if (data.success && data.accountType === 'reseller') {
+            window.location.href = 'reseller.html';
+            return false;
+        }
+        
         if (!data.success) {
             // Token invalid - show helpful message
             if (data.message) {
@@ -529,6 +535,7 @@ function showTab(tabName) {
         loadStats();
     } else if (tabName === 'admin' && currentUser && currentUser.isAdmin) {
         loadAdminUsers();
+        loadAdminResellers();
         loadAdminInvites();
         checkUpdateInfo();
     }
@@ -977,10 +984,25 @@ async function deleteUser(userId, username) {
 
 function showCreateUserModal() {
     document.getElementById('createUserModal').style.display = 'flex';
+    document.getElementById('new-user-account-type').value = 'user';
     document.getElementById('new-user-username').value = '';
     document.getElementById('new-user-email').value = '';
     document.getElementById('new-user-password').value = '';
+    document.getElementById('new-user-balance').value = '0';
+    document.getElementById('user-product-private').checked = true;
+    document.getElementById('user-product-public').checked = false;
+    toggleUserTypeFields();
     document.getElementById('create-user-status').innerHTML = '';
+}
+
+function toggleUserTypeFields() {
+    const accountType = document.getElementById('new-user-account-type').value;
+    const resellerFields = document.getElementById('reseller-fields');
+    if (accountType === 'reseller') {
+        resellerFields.style.display = 'block';
+    } else {
+        resellerFields.style.display = 'none';
+    }
 }
 
 function closeCreateUserModal() {
@@ -988,6 +1010,7 @@ function closeCreateUserModal() {
 }
 
 async function createUser() {
+    const accountType = document.getElementById('new-user-account-type').value;
     const username = document.getElementById('new-user-username').value.trim();
     const email = document.getElementById('new-user-email').value.trim();
     const password = document.getElementById('new-user-password').value;
@@ -1003,16 +1026,52 @@ async function createUser() {
         return;
     }
     
+    // Validate reseller fields if account type is reseller
+    if (accountType === 'reseller') {
+        const allowedProducts = [];
+        if (document.getElementById('user-product-private').checked) {
+            allowedProducts.push('private');
+        }
+        if (document.getElementById('user-product-public').checked) {
+            allowedProducts.push('public');
+        }
+        
+        if (allowedProducts.length === 0) {
+            statusDiv.innerHTML = '<div style="color: #ef4444;">At least one product must be selected for resellers</div>';
+            return;
+        }
+    }
+    
     statusDiv.innerHTML = '<div style="color: #888888;">Creating user...</div>';
     
     try {
+        const requestBody = {
+            username,
+            email,
+            password,
+            accountType
+        };
+        
+        // Add reseller-specific fields
+        if (accountType === 'reseller') {
+            requestBody.initialBalance = parseFloat(document.getElementById('new-user-balance').value) || 0;
+            const allowedProducts = [];
+            if (document.getElementById('user-product-private').checked) {
+                allowedProducts.push('private');
+            }
+            if (document.getElementById('user-product-public').checked) {
+                allowedProducts.push('public');
+            }
+            requestBody.allowedProducts = allowedProducts;
+        }
+        
         const response = await fetch(`${API}/admin/users`, {
             method: 'POST',
             headers: {
                 'Authorization': currentToken,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, email, password })
+            body: JSON.stringify(requestBody)
         });
         
         const data = await response.json();
@@ -1022,6 +1081,9 @@ async function createUser() {
             setTimeout(() => {
                 closeCreateUserModal();
                 loadAdminUsers();
+                if (accountType === 'reseller') {
+                    loadAdminResellers();
+                }
             }, 1000);
         } else {
             statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${data.message}</div>`;
@@ -1293,9 +1355,323 @@ document.addEventListener('DOMContentLoaded', async () => {
         checkAdminAccess();
         if (currentUser && currentUser.isAdmin) {
             loadAdminUsers();
+            loadAdminResellers();
             loadAdminInvites();
             checkUpdateInfo();
         }
     }
 });
+
+// Reseller Management Functions
+async function loadAdminResellers() {
+    const listDiv = document.getElementById('admin-resellers-list');
+    if (!listDiv) return;
+    
+    try {
+        const response = await fetch(`${API}/admin/resellers`, {
+            method: 'GET',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.resellers) {
+            if (data.resellers.length === 0) {
+                listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No resellers found</div>';
+                return;
+            }
+            
+            let html = '<div class="admin-table-container"><table class="admin-table"><thead><tr>';
+            html += '<th>Username</th><th>Email</th><th>Balance</th><th>Products</th><th>Keys</th><th>Created</th><th>Actions</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.resellers.forEach(reseller => {
+                const products = (reseller.allowedProducts || []).join(', ') || 'None';
+                html += `<tr>
+                    <td><strong>${escapeHtml(reseller.username)}</strong></td>
+                    <td>${escapeHtml(reseller.email)}</td>
+                    <td>$${parseFloat(reseller.balance || 0).toFixed(2)}</td>
+                    <td>${escapeHtml(products)}</td>
+                    <td>${reseller.keyCount}</td>
+                    <td>${new Date(reseller.createdAt).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-small" onclick="manageReseller('${reseller.id}')" title="Manage">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table></div>';
+            listDiv.innerHTML = html;
+        } else {
+            listDiv.innerHTML = '<div style="color: #ef4444;">Error loading resellers</div>';
+        }
+    } catch (error) {
+        console.error('Error loading resellers:', error);
+        listDiv.innerHTML = '<div style="color: #ef4444;">Error loading resellers</div>';
+    }
+}
+
+function showCreateResellerModal() {
+    document.getElementById('createResellerModal').style.display = 'flex';
+    document.getElementById('new-reseller-username').value = '';
+    document.getElementById('new-reseller-email').value = '';
+    document.getElementById('new-reseller-password').value = '';
+    document.getElementById('new-reseller-balance').value = '0';
+    document.getElementById('reseller-product-private').checked = true;
+    document.getElementById('reseller-product-public').checked = false;
+    document.getElementById('create-reseller-status').innerHTML = '';
+}
+
+function closeCreateResellerModal() {
+    document.getElementById('createResellerModal').style.display = 'none';
+}
+
+async function createReseller() {
+    const username = document.getElementById('new-reseller-username').value.trim();
+    const email = document.getElementById('new-reseller-email').value.trim();
+    const password = document.getElementById('new-reseller-password').value;
+    const balance = parseFloat(document.getElementById('new-reseller-balance').value) || 0;
+    const statusDiv = document.getElementById('create-reseller-status');
+    
+    if (!username || !email || !password) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">Username, email, and password required</div>';
+        return;
+    }
+    
+    const allowedProducts = [];
+    if (document.getElementById('reseller-product-private').checked) {
+        allowedProducts.push('private');
+    }
+    if (document.getElementById('reseller-product-public').checked) {
+        allowedProducts.push('public');
+    }
+    
+    if (allowedProducts.length === 0) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">At least one product must be selected</div>';
+        return;
+    }
+    
+    statusDiv.innerHTML = '<div style="color: #888888;">Creating reseller...</div>';
+    
+    try {
+        const response = await fetch(`${API}/auth/register-reseller`, {
+            method: 'POST',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username,
+                email,
+                password,
+                initialBalance: balance,
+                allowedProducts
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            statusDiv.innerHTML = '<div style="color: #22c55e;">✅ Reseller created successfully!</div>';
+            setTimeout(() => {
+                closeCreateResellerModal();
+                loadAdminResellers();
+            }, 1000);
+        } else {
+            statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${data.message}</div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Error creating reseller</div>';
+    }
+}
+
+async function manageReseller(userId) {
+    const modal = document.getElementById('manageResellerModal');
+    const contentDiv = document.getElementById('manage-reseller-content');
+    
+    try {
+        const response = await fetch(`${API}/admin/users/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.user) {
+            const user = data.user;
+            if (user.accountType !== 'reseller') {
+                alert('This user is not a reseller');
+                return;
+            }
+            
+            document.getElementById('manage-reseller-title').textContent = `Manage Reseller: ${escapeHtml(user.username)}`;
+            
+            contentDiv.innerHTML = `
+                <div class="form-section">
+                    <label class="form-label">Current Balance: $${parseFloat(user.balance || 0).toFixed(2)}</label>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">Add Balance ($)</label>
+                    <input type="number" id="add-balance-amount" placeholder="0.00" step="0.01" min="0" value="0" class="form-input">
+                    <button class="btn btn-primary" onclick="addResellerBalance('${userId}')" style="margin-top: 0.5rem;">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Balance</span>
+                    </button>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">Set Balance ($)</label>
+                    <input type="number" id="set-balance-amount" placeholder="${parseFloat(user.balance || 0).toFixed(2)}" step="0.01" min="0" value="${parseFloat(user.balance || 0).toFixed(2)}" class="form-input">
+                    <button class="btn btn-primary" onclick="setResellerBalance('${userId}')" style="margin-top: 0.5rem;">
+                        <i class="fas fa-save"></i>
+                        <span>Set Balance</span>
+                    </button>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">Allowed Products</label>
+                    <div style="margin-top: 0.5rem;">
+                        <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="manage-product-private" ${(user.allowedProducts || []).includes('private') ? 'checked' : ''} style="margin-right: 0.5rem;">
+                            <span>Private</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" id="manage-product-public" ${(user.allowedProducts || []).includes('public') ? 'checked' : ''} style="margin-right: 0.5rem;">
+                            <span>Public (Coming Soon)</span>
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" onclick="updateResellerProducts('${userId}')" style="margin-top: 0.5rem;">
+                        <i class="fas fa-save"></i>
+                        <span>Update Products</span>
+                    </button>
+                </div>
+                <div id="manage-reseller-status" style="margin-top: 1rem;"></div>
+            `;
+            
+            modal.style.display = 'flex';
+        } else {
+            alert('Error loading reseller details');
+        }
+    } catch (error) {
+        console.error('Error loading reseller:', error);
+        alert('Error loading reseller details');
+    }
+}
+
+function closeManageResellerModal() {
+    document.getElementById('manageResellerModal').style.display = 'none';
+}
+
+async function addResellerBalance(userId) {
+    const amount = parseFloat(document.getElementById('add-balance-amount').value);
+    const statusDiv = document.getElementById('manage-reseller-status');
+    
+    if (isNaN(amount) || amount <= 0) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">Invalid amount</div>';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API}/admin/resellers/${userId}/add-balance`, {
+            method: 'POST',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ amount })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            statusDiv.innerHTML = `<div style="color: #22c55e;">✅ Added $${amount.toFixed(2)}. New balance: $${data.balance.toFixed(2)}</div>`;
+            setTimeout(() => {
+                manageReseller(userId);
+            }, 1000);
+        } else {
+            statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${data.message}</div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Error adding balance</div>';
+    }
+}
+
+async function setResellerBalance(userId) {
+    const amount = parseFloat(document.getElementById('set-balance-amount').value);
+    const statusDiv = document.getElementById('manage-reseller-status');
+    
+    if (isNaN(amount) || amount < 0) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">Invalid amount</div>';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API}/admin/resellers/${userId}/balance`, {
+            method: 'POST',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ balance: amount })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            statusDiv.innerHTML = `<div style="color: #22c55e;">✅ Balance set to $${data.balance.toFixed(2)}</div>`;
+            setTimeout(() => {
+                manageReseller(userId);
+            }, 1000);
+        } else {
+            statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${data.message}</div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Error setting balance</div>';
+    }
+}
+
+async function updateResellerProducts(userId) {
+    const allowedProducts = [];
+    if (document.getElementById('manage-product-private').checked) {
+        allowedProducts.push('private');
+    }
+    if (document.getElementById('manage-product-public').checked) {
+        allowedProducts.push('public');
+    }
+    
+    if (allowedProducts.length === 0) {
+        document.getElementById('manage-reseller-status').innerHTML = '<div style="color: #ef4444;">At least one product must be selected</div>';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API}/admin/resellers/${userId}/products`, {
+            method: 'POST',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ allowedProducts })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('manage-reseller-status').innerHTML = '<div style="color: #22c55e;">✅ Products updated successfully</div>';
+            setTimeout(() => {
+                loadAdminResellers();
+            }, 1000);
+        } else {
+            document.getElementById('manage-reseller-status').innerHTML = `<div style="color: #ef4444;">❌ Error: ${data.message}</div>`;
+        }
+    } catch (error) {
+        document.getElementById('manage-reseller-status').innerHTML = '<div style="color: #ef4444;">❌ Error updating products</div>';
+    }
+}
 
