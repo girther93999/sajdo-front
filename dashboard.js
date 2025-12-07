@@ -1031,6 +1031,9 @@ async function createUser() {
     }
 }
 
+// Store recently generated invite codes (so we can show/delete them)
+let recentInviteCodes = [];
+
 async function loadAdminInvites() {
     const listDiv = document.getElementById('admin-invites-list');
     if (!listDiv) return;
@@ -1046,22 +1049,32 @@ async function loadAdminInvites() {
         
         const data = await response.json();
         
-        if (data.success && data.invites) {
-            if (data.invites.length === 0) {
+        if (data.success) {
+            const count = data.count || 0;
+            
+            if (count === 0 && recentInviteCodes.length === 0) {
                 listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No invite codes</div>';
                 return;
             }
             
-            let html = '<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">';
-            data.invites.forEach(invite => {
-                html += `<div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 0.5rem 1rem; border-radius: 4px; display: flex; align-items: center; gap: 0.5rem;">
-                    <code>${escapeHtml(invite)}</code>
-                    <button class="btn-icon" onclick="deleteInvite('${escapeHtml(invite)}')" title="Delete">
-                        <i class="fas fa-times" style="color: #ef4444;"></i>
-                    </button>
-                </div>`;
-            });
-            html += '</div>';
+            let html = `<div style="margin-bottom: 1rem; color: #888888; font-size: 0.875rem;">Total active invite codes: <strong>${count}</strong></div>`;
+            
+            // Show recently generated codes (if any)
+            if (recentInviteCodes.length > 0) {
+                html += '<div style="margin-bottom: 1rem;"><div style="color: #888888; font-size: 0.875rem; margin-bottom: 0.5rem;">Recently Generated (copy these before refreshing):</div>';
+                html += '<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">';
+                recentInviteCodes.forEach((invite, index) => {
+                    html += `<div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 0.5rem 1rem; border-radius: 4px; display: flex; align-items: center; gap: 0.5rem;">
+                        <code style="user-select: all;">${escapeHtml(invite)}</code>
+                        <button class="btn-icon" onclick="deleteInvite('${escapeHtml(invite)}')" title="Delete">
+                            <i class="fas fa-times" style="color: #ef4444;"></i>
+                        </button>
+                    </div>`;
+                });
+                html += '</div></div>';
+            }
+            
+            html += '<div style="color: #888888; font-size: 0.75rem; font-style: italic;">Note: Invite codes are encrypted for security. Only newly generated codes are shown above.</div>';
             listDiv.innerHTML = html;
         } else {
             listDiv.innerHTML = '<div style="color: #ef4444;">Failed to load invites</div>';
@@ -1087,11 +1100,16 @@ async function generateInvites() {
         
         const data = await response.json();
         
-        if (data.success) {
-            alert(`✅ Generated ${data.invites.length} invite codes!`);
+        if (data.success && data.invites) {
+            // Store recently generated codes so we can show/delete them
+            recentInviteCodes = [...recentInviteCodes, ...data.invites];
+            
+            // Show codes in alert for easy copying
+            const codesText = data.invites.join('\n');
+            alert(`✅ Generated ${data.invites.length} invite codes!\n\nCodes:\n${codesText}\n\n(These are saved and will be shown in the list below)`);
             loadAdminInvites();
         } else {
-            alert('Error: ' + data.message);
+            alert('Error: ' + (data.message || 'Failed to generate invites'));
         }
     } catch (error) {
         alert('Error generating invites');
@@ -1113,9 +1131,11 @@ async function deleteInvite(invite) {
         const data = await response.json();
         
         if (data.success) {
+            // Remove from recent codes list
+            recentInviteCodes = recentInviteCodes.filter(code => code !== invite);
             loadAdminInvites();
         } else {
-            alert('Error: ' + data.message);
+            alert('Error: ' + (data.message || 'Failed to delete invite'));
         }
     } catch (error) {
         alert('Error deleting invite');
