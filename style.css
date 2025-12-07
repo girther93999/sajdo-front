@@ -1102,6 +1102,42 @@ td code {
     text-decoration: underline;
 }
 
+/* Auth Form Input Styling */
+.input-group {
+    margin-bottom: 1rem;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 6px;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: #2a2a2a;
+    background: #111111;
+}
+
+.auth-input::placeholder {
+    color: #555555;
+}
+
+.auth-form {
+    display: none;
+}
+
+.auth-form.active {
+    display: block;
+}
+
 /* Files Grid */
 .files-grid {
     display: grid;
