@@ -303,17 +303,19 @@ async function loadKeys() {
                     ? new Date(key.lastCheck).toLocaleString() 
                     : '-';
                 
-                // HWID Lock display
+                // HWID Lock display with hover tooltip
                 let hwidDisplay = '';
                 if (key.hwid) {
                     hwidDisplay = `
-                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                            <code style="font-size: 0.75rem;">${key.hwid}</code>
-                            <span class="status status-used" style="font-size: 0.65rem;"><i class="fas fa-lock"></i> Locked</span>
+                        <div class="hwid-container">
+                            <span class="hwid-indicator"><i class="fas fa-lock"></i> Locked</span>
+                            <div class="hwid-tooltip">
+                                <code>${key.hwid}</code>
+                            </div>
                         </div>
                     `;
                 } else {
-                    hwidDisplay = '<span class="status status-active" style="font-size: 0.75rem;"><i class="fas fa-unlock"></i> Not Locked</span>';
+                    hwidDisplay = '<span class="hwid-indicator"><i class="fas fa-unlock"></i> Not Locked</span>';
                 }
                 
                 tr.innerHTML = `
@@ -325,10 +327,10 @@ async function loadKeys() {
                     <td>${new Date(key.createdAt).toLocaleString()}</td>
                     <td>${lastCheck}</td>
                     <td>
-                        <div class="actions">
-                            <button class="btn btn-action" onclick="openAddTimeModal('${key.key}')"><i class="fas fa-clock"></i> Add Time</button>
-                            <button class="btn btn-action" onclick="resetHWID('${key.key}')" ${!key.hwid ? 'disabled' : ''}><i class="fas fa-unlock-alt"></i> Reset HWID</button>
-                            <button class="btn btn-danger" onclick="deleteKey('${key.key}')"><i class="fas fa-trash"></i> Delete</button>
+                        <div class="table-actions">
+                            <button class="table-action-btn" onclick="openAddTimeModal('${key.key}')" title="Add Time"><i class="fas fa-clock"></i></button>
+                            <button class="table-action-btn" onclick="resetHWID('${key.key}')" ${!key.hwid ? 'disabled' : ''} title="Reset HWID"><i class="fas fa-unlock-alt"></i></button>
+                            <button class="table-action-btn table-action-btn-danger" onclick="deleteKey('${key.key}')" title="Delete"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 `;
