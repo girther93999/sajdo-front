@@ -99,24 +99,21 @@ async function checkAuth() {
             return false;
         }
         
-        document.getElementById('username-display').textContent = currentUser.username;
+        const usernameDisplay = document.getElementById('username-display');
+        if (usernameDisplay) usernameDisplay.textContent = currentUser.username;
         
-        // Display account credentials
-        document.getElementById('account-id').textContent = currentUser.id;
-        document.getElementById('api-token').textContent = currentToken;
-        document.getElementById('account-username').textContent = currentUser.username;
-        
-        // Update code examples
+        // Display account credentials (check if elements exist)
+        const accountIdEl = document.getElementById('account-id');
+        const apiTokenEl = document.getElementById('api-token');
+        const accountUsernameEl = document.getElementById('account-username');
         const codeAccountId = document.getElementById('code-account-id');
         const codeApiToken = document.getElementById('code-api-token');
+        
+        if (accountIdEl) accountIdEl.textContent = currentUser.id;
+        if (apiTokenEl) apiTokenEl.textContent = currentToken;
+        if (accountUsernameEl) accountUsernameEl.textContent = currentUser.username;
         if (codeAccountId) codeAccountId.textContent = currentUser.id;
         if (codeApiToken) codeApiToken.textContent = currentToken;
-        
-        // Update examples tab
-        const exampleAccountId = document.getElementById('example-account-id');
-        const exampleApiToken = document.getElementById('example-api-token');
-        if (exampleAccountId) exampleAccountId.textContent = currentUser.id;
-        if (exampleApiToken) exampleApiToken.textContent = currentToken;
         
         return true;
     } catch (error) {
@@ -454,19 +451,26 @@ function showTab(tabName) {
     });
     
     // Show selected tab
-    document.getElementById(tabName + '-tab').classList.add('active');
+    const tabElement = document.getElementById(tabName + '-tab');
+    if (tabElement) {
+        tabElement.classList.add('active');
+    }
     
     // Update nav items
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
+        if (item.getAttribute('data-tab') === tabName) {
+            item.classList.add('active');
+        }
     });
-    event.target.classList.add('active');
     
     // Load data if needed
     if (tabName === 'keys') {
         loadKeys();
     } else if (tabName === 'overview') {
         loadStats();
+    } else if (tabName === 'messages') {
+        loadMessages();
     }
 }
 
@@ -748,9 +752,8 @@ async function deleteAccount() {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     if (await checkAuth()) {
-        loadKeys();
+        // Load overview stats by default
         loadStats();
-        loadMessages();
     }
 });
 
