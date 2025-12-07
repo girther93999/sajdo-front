@@ -1031,9 +1031,6 @@ async function createUser() {
     }
 }
 
-// Store recently generated invite codes (so we can show/delete them)
-let recentInviteCodes = [];
-
 async function loadAdminInvites() {
     const listDiv = document.getElementById('admin-invites-list');
     if (!listDiv) return;
@@ -1049,32 +1046,48 @@ async function loadAdminInvites() {
         
         const data = await response.json();
         
-        if (data.success) {
-            const count = data.count || 0;
+        if (data.success && data.invites) {
+            const invites = data.invites || [];
             
-            if (count === 0 && recentInviteCodes.length === 0) {
+            if (invites.length === 0) {
                 listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No invite codes</div>';
                 return;
             }
             
-            let html = `<div style="margin-bottom: 1rem; color: #888888; font-size: 0.875rem;">Total active invite codes: <strong>${count}</strong></div>`;
+            const usedCount = invites.filter(inv => inv.isUsed).length;
+            const unusedCount = invites.length - usedCount;
             
-            // Show recently generated codes (if any)
-            if (recentInviteCodes.length > 0) {
-                html += '<div style="margin-bottom: 1rem;"><div style="color: #888888; font-size: 0.875rem; margin-bottom: 0.5rem;">Recently Generated (copy these before refreshing):</div>';
-                html += '<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">';
-                recentInviteCodes.forEach((invite, index) => {
-                    html += `<div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 0.5rem 1rem; border-radius: 4px; display: flex; align-items: center; gap: 0.5rem;">
-                        <code style="user-select: all;">${escapeHtml(invite)}</code>
-                        <button class="btn-icon" onclick="deleteInvite('${escapeHtml(invite)}')" title="Delete">
-                            <i class="fas fa-times" style="color: #ef4444;"></i>
-                        </button>
-                    </div>`;
-                });
-                html += '</div></div>';
-            }
+            let html = `<div style="margin-bottom: 1rem; display: flex; gap: 1rem; color: #888888; font-size: 0.875rem;">
+                <span>Total: <strong>${invites.length}</strong></span>
+                <span>Used: <strong style="color: #ef4444;">${usedCount}</strong></span>
+                <span>Available: <strong style="color: #22c55e;">${unusedCount}</strong></span>
+            </div>`;
             
-            html += '<div style="color: #888888; font-size: 0.75rem; font-style: italic;">Note: Invite codes are encrypted for security. Only newly generated codes are shown above.</div>';
+            html += '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse;">';
+            html += '<thead><tr style="border-bottom: 1px solid #1a1a1a;">';
+            html += '<th style="padding: 0.75rem; text-align: left; color: #888888; font-size: 0.75rem; font-weight: 600;">Code</th>';
+            html += '<th style="padding: 0.75rem; text-align: left; color: #888888; font-size: 0.75rem; font-weight: 600;">Status</th>';
+            html += '<th style="padding: 0.75rem; text-align: left; color: #888888; font-size: 0.75rem; font-weight: 600;">Created</th>';
+            html += '<th style="padding: 0.75rem; text-align: left; color: #888888; font-size: 0.75rem; font-weight: 600;">Used By</th>';
+            html += '<th style="padding: 0.75rem; text-align: left; color: #888888; font-size: 0.75rem; font-weight: 600;">Actions</th>';
+            html += '</tr></thead><tbody>';
+            
+            invites.forEach(invite => {
+                const statusClass = invite.isUsed ? 'status-expired' : 'status-active';
+                const statusText = invite.isUsed ? 'Used' : 'Available';
+                const createdDate = invite.createdAt ? new Date(invite.createdAt).toLocaleDateString() : '-';
+                const usedDate = invite.usedAt ? new Date(invite.usedAt).toLocaleDateString() : '-';
+                
+                html += `<tr style="border-bottom: 1px solid #1a1a1a;">`;
+                html += `<td style="padding: 0.75rem;"><code style="user-select: all; background: #0a0a0a; padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid #1a1a1a;">${escapeHtml(invite.code || '***')}</code></td>`;
+                html += `<td style="padding: 0.75rem;"><span class="status ${statusClass}">${statusText}</span></td>`;
+                html += `<td style="padding: 0.75rem; color: #888888; font-size: 0.875rem;">${createdDate}</td>`;
+                html += `<td style="padding: 0.75rem; color: #888888; font-size: 0.875rem;">${invite.usedBy ? escapeHtml(invite.usedBy) : '-'}</td>`;
+                html += `<td style="padding: 0.75rem;"><button class="table-action-btn table-action-btn-danger" onclick="deleteInvite('${escapeHtml(invite.code || invite.hash)}')" title="Delete"><i class="fas fa-trash"></i></button></td>`;
+                html += `</tr>`;
+            });
+            
+            html += '</tbody></table></div>';
             listDiv.innerHTML = html;
         } else {
             listDiv.innerHTML = '<div style="color: #ef4444;">Failed to load invites</div>';
@@ -1101,12 +1114,9 @@ async function generateInvites() {
         const data = await response.json();
         
         if (data.success && data.invites) {
-            // Store recently generated codes so we can show/delete them
-            recentInviteCodes = [...recentInviteCodes, ...data.invites];
-            
             // Show codes in alert for easy copying
             const codesText = data.invites.join('\n');
-            alert(`✅ Generated ${data.invites.length} invite codes!\n\nCodes:\n${codesText}\n\n(These are saved and will be shown in the list below)`);
+            alert(`✅ Generated ${data.invites.length} invite codes!\n\nCodes:\n${codesText}\n\n(These are saved and will be shown in the list)`);
             loadAdminInvites();
         } else {
             alert('Error: ' + (data.message || 'Failed to generate invites'));
