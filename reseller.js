@@ -339,6 +339,16 @@ function showTab(tabName) {
     }
 }
 
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    if (await checkAuth()) {
+        document.getElementById('username-display').textContent = currentUser.username;
+        document.getElementById('overview-username').textContent = currentUser.username;
+        loadStats();
+        updateCostDisplay(); // Initialize cost display
+    }
+});
+
 // User menu toggle
 function toggleUserMenu() {
     const dropdown = document.getElementById('userMenuDropdown');
