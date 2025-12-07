@@ -1083,7 +1083,7 @@ async function loadAdminInvites() {
                 html += `<td style="padding: 0.75rem;"><span class="status ${statusClass}">${statusText}</span></td>`;
                 html += `<td style="padding: 0.75rem; color: #888888; font-size: 0.875rem;">${createdDate}</td>`;
                 html += `<td style="padding: 0.75rem; color: #888888; font-size: 0.875rem;">${invite.usedBy ? escapeHtml(invite.usedBy) : '-'}</td>`;
-                html += `<td style="padding: 0.75rem;"><button class="table-action-btn table-action-btn-danger" onclick="deleteInvite('${escapeHtml(invite.code || invite.hash)}')" title="Delete"><i class="fas fa-trash"></i></button></td>`;
+                html += `<td style="padding: 0.75rem;"><button class="table-action-btn table-action-btn-danger" onclick="deleteInvite('${escapeHtml(invite.code || '***')}', '${escapeHtml(invite.hash)}')" title="Delete"><i class="fas fa-trash"></i></button></td>`;
                 html += `</tr>`;
             });
             
@@ -1126,11 +1126,17 @@ async function generateInvites() {
     }
 }
 
-async function deleteInvite(invite) {
-    if (!confirm(`Delete invite code "${invite}"?`)) return;
+async function deleteInvite(invite, hash) {
+    if (!confirm(`Delete invite code "${invite === '***' ? '(encrypted code)' : invite}"?`)) return;
     
     try {
-        const response = await fetch(`${API}/admin/invites/${encodeURIComponent(invite)}`, {
+        // If invite is "***" or we have a hash, use hash for deletion
+        let url = `${API}/admin/invites/${encodeURIComponent(invite)}`;
+        if ((invite === '***' || !invite) && hash) {
+            url += `?hash=${encodeURIComponent(hash)}`;
+        }
+        
+        const response = await fetch(url, {
             method: 'DELETE',
             headers: {
                 'Authorization': currentToken,
@@ -1141,8 +1147,6 @@ async function deleteInvite(invite) {
         const data = await response.json();
         
         if (data.success) {
-            // Remove from recent codes list
-            recentInviteCodes = recentInviteCodes.filter(code => code !== invite);
             loadAdminInvites();
         } else {
             alert('Error: ' + (data.message || 'Failed to delete invite'));
