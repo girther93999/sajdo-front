@@ -494,8 +494,6 @@ function showTab(tabName) {
         loadKeys();
     } else if (tabName === 'overview') {
         loadStats();
-    } else if (tabName === 'messages') {
-        loadMessages();
     }
     
     // Close user menu if open
@@ -782,11 +780,117 @@ async function deleteAccount() {
     }
 }
 
+// Admin functions
+async function uploadUpdate() {
+    const fileInput = document.getElementById('update-file');
+    const statusDiv = document.getElementById('upload-status');
+    
+    if (!fileInput.files || !fileInput.files[0]) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">Please select a file</div>';
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    if (!file.name.endsWith('.exe')) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">Only .exe files are allowed</div>';
+        return;
+    }
+    
+    // Get admin credentials from prompt (hidden from UI)
+    const username = prompt('Admin Username:');
+    const password = prompt('Admin Password:');
+    
+    if (!username || !password) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">Admin credentials required</div>';
+        return;
+    }
+    
+    statusDiv.innerHTML = '<div style="color: #888888;">Uploading...</div>';
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('username', username);
+    formData.append('password', password);
+    
+    try {
+        const response = await fetch(`${API.replace('/api', '')}/api/admin/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            statusDiv.innerHTML = `<div style="color: #22c55e;">✅ Upload successful! File: ${data.filename}, Size: ${(data.size / 1024 / 1024).toFixed(2)} MB</div>`;
+            fileInput.value = '';
+            checkUpdateInfo();
+        } else {
+            statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${data.message}</div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Upload failed. Please try again.</div>';
+    }
+}
+
+async function checkUpdateInfo() {
+    const infoDiv = document.getElementById('update-info');
+    
+    try {
+        const response = await fetch(`${API.replace('/api', '')}/api/updates/check`);
+        const data = await response.json();
+        
+        if (data.success && data.hasUpdate) {
+            const sizeMB = (data.size / 1024 / 1024).toFixed(2);
+            const date = new Date(data.modifiedAt).toLocaleString();
+            infoDiv.innerHTML = `
+                <div style="color: #22c55e;">
+                    <strong>✅ Update Available</strong><br>
+                    File: ${data.filename}<br>
+                    Size: ${sizeMB} MB<br>
+                    Uploaded: ${date}
+                </div>
+            `;
+        } else {
+            infoDiv.innerHTML = '<div style="color: #888888;">No update file available</div>';
+        }
+    } catch (error) {
+        infoDiv.innerHTML = '<div style="color: #ef4444;">Error checking update info</div>';
+    }
+}
+
+// Check if user is admin and show admin panel
+function checkAdminAccess() {
+    if (currentUser && currentUser.username === 'astreon_admin_2024') {
+        // Add admin tab to sidebar
+        const sidebar = document.querySelector('.sidebar-nav');
+        if (sidebar && !document.getElementById('admin-nav-item')) {
+            const adminNav = document.createElement('button');
+            adminNav.id = 'admin-nav-item';
+            adminNav.className = 'nav-item';
+            adminNav.setAttribute('data-tab', 'admin');
+            adminNav.onclick = () => showTab('admin');
+            adminNav.innerHTML = '<i class="fas fa-shield-alt"></i><span>Admin</span>';
+            sidebar.appendChild(adminNav);
+        }
+        
+        // Show admin tab
+        const adminTab = document.getElementById('admin-tab');
+        if (adminTab) {
+            adminTab.style.display = 'block';
+        }
+        
+        // Load update info
+        checkUpdateInfo();
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     if (await checkAuth()) {
         // Load overview stats by default
         loadStats();
+        // Check admin access
+        checkAdminAccess();
     }
 });
 

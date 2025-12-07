@@ -59,10 +59,6 @@
                     <i class="fas fa-code"></i>
                     <span>Integration</span>
                 </button>
-                <button class="nav-item" onclick="showTab('messages')" data-tab="messages">
-                    <i class="fas fa-bullhorn"></i>
-                    <span>Messages</span>
-                </button>
             </nav>
         </aside>
 
@@ -380,59 +376,39 @@ if (auth.validateKey(userKey)) {
                 </div>
             </div>
 
-            <!-- Messages Tab -->
-            <div id="messages-tab" class="tab-content">
+            <!-- Admin Panel (Hidden - only visible to admin) -->
+            <div id="admin-tab" class="tab-content" style="display: none;">
                 <div class="page-header">
                     <div>
-                        <h1>Messages</h1>
-                        <p class="page-subtitle">Send announcements to all users</p>
+                        <h1>Admin Panel</h1>
+                        <p class="page-subtitle">Upload new version for auto-update</p>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-header">
-                        <h2>Send Message</h2>
+                        <h2>Upload Update</h2>
                     </div>
                     <div class="card-body">
-                        <div class="form-row">
-                            <div class="form-section" style="flex: 1;">
-                                <label class="form-label">Title</label>
-                                <input type="text" id="message-title" placeholder="Enter message title" class="form-input">
-                            </div>
-                            <div class="form-section" style="flex: 0 0 150px;">
-                                <label class="form-label">Type</label>
-                                <select id="message-type" class="form-input">
-                                    <option value="info">Info</option>
-                                    <option value="warning">Warning</option>
-                                    <option value="error">Error</option>
-                                    <option value="success">Success</option>
-                                </select>
-                            </div>
-                        </div>
                         <div class="form-section">
-                            <label class="form-label">Message Content</label>
-                            <textarea id="message-content" rows="4" placeholder="Enter your message..." class="form-input"></textarea>
+                            <label class="form-label">Select File (.exe)</label>
+                            <input type="file" id="update-file" accept=".exe" class="form-input">
+                            <span class="form-hint">Upload the latest version of the cheat. Users will auto-update on next launch.</span>
                         </div>
-                        <div class="form-section">
-                            <label class="form-label">Expires At (Optional)</label>
-                            <input type="datetime-local" id="message-expires" class="form-input">
-                            <span class="form-hint">Leave empty for permanent message</span>
-                        </div>
-                        <button class="btn btn-primary" onclick="sendMessage()">
-                            <i class="fas fa-paper-plane"></i>
-                            <span>Send Message</span>
+                        <button class="btn btn-primary" onclick="uploadUpdate()">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload Update</span>
                         </button>
+                        <div id="upload-status" style="margin-top: 1rem;"></div>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-header">
-                        <h2>Active Messages</h2>
+                        <h2>Current Update Info</h2>
                     </div>
                     <div class="card-body">
-                        <div id="messages-container" class="messages-container">
-                            <div class="loading">Loading messages...</div>
-                        </div>
+                        <div id="update-info" class="loading">Checking...</div>
                     </div>
                 </div>
             </div>
@@ -572,3 +548,4 @@ if (auth.validateKey(userKey)) {
     <script src="dashboard.js"></script>
 </body>
 </html>
+
