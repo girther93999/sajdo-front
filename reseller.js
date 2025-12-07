@@ -392,6 +392,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('username-display').textContent = currentUser.username;
         document.getElementById('overview-username').textContent = currentUser.username;
         loadStats();
+        updateCostDisplay(); // Initialize cost display
     }
 });
 
