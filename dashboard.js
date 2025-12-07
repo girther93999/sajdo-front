@@ -1150,18 +1150,29 @@ async function checkUpdateInfo() {
         const response = await fetch(`${API.replace('/api', '')}/api/updates/check`);
         const data = await response.json();
         
-        if (data.success && data.hasUpdate) {
-            const sizeMB = (data.size / 1024 / 1024).toFixed(2);
-            const date = new Date(data.modifiedAt).toLocaleString();
-            infoDiv.innerHTML = `
-                <div style="color: #22c55e;">
-                    <strong>✅ Update Available</strong><br>
-                    Version: ${data.version || 'N/A'}<br>
-                    File: ${data.filename}<br>
-                    Size: ${sizeMB} MB<br>
-                    Uploaded: ${date}
-                </div>
-            `;
+        if (data.success) {
+            if (data.hasUpdate) {
+                const sizeMB = (data.size / 1024 / 1024).toFixed(2);
+                const date = new Date(data.modifiedAt).toLocaleString();
+                infoDiv.innerHTML = `
+                    <div style="color: #22c55e;">
+                        <strong>✅ Update Available</strong><br>
+                        <strong>Current Version: ${data.serverVersion || data.version || 'N/A'}</strong><br>
+                        File: ${data.filename}<br>
+                        Size: ${sizeMB} MB<br>
+                        Uploaded: ${date}
+                    </div>
+                `;
+            } else {
+                // No update available, but show current version if available
+                const versionInfo = data.serverVersion || data.version || 'N/A';
+                infoDiv.innerHTML = `
+                    <div style="color: #888888;">
+                        <strong>Current Version: ${versionInfo}</strong><br>
+                        No update file available
+                    </div>
+                `;
+            }
         } else {
             infoDiv.innerHTML = '<div style="color: #888888;">No update file available</div>';
         }
