@@ -425,6 +425,11 @@ if (auth.validateKey(userKey)) {
                             <span class="form-hint">Enter a unique version number. Clients will only update if their version differs.</span>
                         </div>
                         <div class="form-section" style="margin-top: 1rem;">
+                            <label class="form-label">What's Changed / Update Notes</label>
+                            <textarea id="update-changelog" class="form-input" rows="4" placeholder="e.g., Fixed bugs, Added new features, Performance improvements..." style="resize: vertical; min-height: 80px;"></textarea>
+                            <span class="form-hint">Describe what changed in this update. This will be sent to Discord.</span>
+                        </div>
+                        <div class="form-section" style="margin-top: 1rem;">
                             <label class="form-label">Select File (.exe)</label>
                             <input type="file" id="update-file" accept=".exe" class="form-input">
                             <span class="form-hint">Upload the latest version. Users will auto-update on next launch.</span>

@@ -1092,6 +1092,7 @@ async function deleteInvite(invite) {
 async function uploadUpdate() {
     const fileInput = document.getElementById('update-file');
     const versionInput = document.getElementById('update-version');
+    const changelogInput = document.getElementById('update-changelog');
     const statusDiv = document.getElementById('upload-status');
     
     if (!versionInput.value || versionInput.value.trim() === '') {
@@ -1119,6 +1120,7 @@ async function uploadUpdate() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('version', versionInput.value.trim());
+    formData.append('changelog', changelogInput.value.trim() || 'No changes specified');
     formData.append('username', username);
     formData.append('password', password);
     
