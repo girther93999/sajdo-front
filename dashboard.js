@@ -100,7 +100,9 @@ async function checkAuth() {
         }
         
         const usernameDisplay = document.getElementById('username-display');
+        const overviewUsername = document.getElementById('overview-username');
         if (usernameDisplay) usernameDisplay.textContent = currentUser.username;
+        if (overviewUsername) overviewUsername.textContent = currentUser.username;
         
         // Display account credentials (check if elements exist)
         const accountIdEl = document.getElementById('account-id');
@@ -443,6 +445,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// User menu toggle
+function toggleUserMenu() {
+    const dropdown = document.getElementById('userMenuDropdown');
+    const trigger = document.querySelector('.user-menu-trigger');
+    if (dropdown) {
+        dropdown.classList.toggle('show');
+        trigger.classList.toggle('active');
+    }
+}
+
+// Close user menu when clicking outside
+document.addEventListener('click', (e) => {
+    const userMenu = document.querySelector('.user-menu');
+    if (userMenu && !userMenu.contains(e.target)) {
+        const dropdown = document.getElementById('userMenuDropdown');
+        const trigger = document.querySelector('.user-menu-trigger');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+            trigger.classList.remove('active');
+        }
+    }
+});
+
 // Tab navigation
 function showTab(tabName) {
     // Hide all tabs
@@ -471,6 +496,14 @@ function showTab(tabName) {
         loadStats();
     } else if (tabName === 'messages') {
         loadMessages();
+    }
+    
+    // Close user menu if open
+    const dropdown = document.getElementById('userMenuDropdown');
+    const trigger = document.querySelector('.user-menu-trigger');
+    if (dropdown && dropdown.classList.contains('show')) {
+        dropdown.classList.remove('show');
+        trigger.classList.remove('active');
     }
 }
 
