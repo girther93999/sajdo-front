@@ -1163,8 +1163,8 @@ async function checkUpdateInfo() {
 
 // Encrypted admin credentials (base64 encoded to hide from source)
 const ADMIN_CREDS = {
-    u: atob('bm91eWZZJipeJmZiOA=='), // 'nouyfY&*^yfb8'
-    p: atob('bm91eWZZJipeJmZiOA==') // 'nouyfY&*^yfb8'
+    u: atob('SzdtUDl4UTJ2UjV3TjhiTDNqRjZoVDQ='), // Random admin username
+    p: atob('WDl6QTRjTTduQjJkRzhrWTVwVjFzVzY=') // Random admin password
 };
 
 // Check if user is admin and show admin panel
