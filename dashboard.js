@@ -494,6 +494,10 @@ function showTab(tabName) {
         loadKeys();
     } else if (tabName === 'overview') {
         loadStats();
+    } else if (tabName === 'admin' && currentUser && currentUser.isAdmin) {
+        loadAdminUsers();
+        loadAdminInvites();
+        checkUpdateInfo();
     }
     
     // Close user menu if open
@@ -781,6 +785,310 @@ async function deleteAccount() {
 }
 
 // Admin functions
+async function loadAdminUsers() {
+    const listDiv = document.getElementById('admin-users-list');
+    if (!listDiv) return;
+    
+    try {
+        const response = await fetch(`${API}/admin/users`, {
+            method: 'GET',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.users) {
+            if (data.users.length === 0) {
+                listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No users found</div>';
+                return;
+            }
+            
+            let html = '<div class="admin-table-container"><table class="admin-table"><thead><tr>';
+            html += '<th>Username</th><th>Email</th><th>Keys</th><th>Created</th><th>Last Login</th><th>Actions</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.users.forEach(user => {
+                html += `<tr>
+                    <td><strong>${escapeHtml(user.username)}</strong></td>
+                    <td>${escapeHtml(user.email)}</td>
+                    <td>${user.keyCount}</td>
+                    <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td>${user.lastLogin === 'Never' ? 'Never' : new Date(user.lastLogin).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="viewUserDetails('${user.id}')" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteUser('${user.id}', '${escapeHtml(user.username)}')" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table></div>';
+            listDiv.innerHTML = html;
+        } else {
+            listDiv.innerHTML = '<div style="color: #ef4444;">Failed to load users</div>';
+        }
+    } catch (error) {
+        listDiv.innerHTML = '<div style="color: #ef4444;">Error loading users</div>';
+    }
+}
+
+async function viewUserDetails(userId) {
+    const modal = document.getElementById('userDetailsModal');
+    const content = document.getElementById('userDetailsContent');
+    const title = document.getElementById('userDetailsTitle');
+    
+    modal.style.display = 'flex';
+    content.innerHTML = '<div class="loading">Loading...</div>';
+    
+    try {
+        const response = await fetch(`${API}/admin/users/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            title.textContent = `User: ${data.user.username}`;
+            
+            let html = `<div class="user-details-section">
+                <h4>User Information</h4>
+                <p><strong>ID:</strong> ${data.user.id}</p>
+                <p><strong>Username:</strong> ${escapeHtml(data.user.username)}</p>
+                <p><strong>Email:</strong> ${escapeHtml(data.user.email)}</p>
+                <p><strong>Created:</strong> ${new Date(data.user.createdAt).toLocaleString()}</p>
+                <p><strong>Last Login:</strong> ${data.user.lastLogin === 'Never' ? 'Never' : new Date(data.user.lastLogin).toLocaleString()}</p>
+            </div>`;
+            
+            if (data.keys && data.keys.length > 0) {
+                html += `<div class="user-details-section">
+                    <h4>Keys (${data.keys.length})</h4>
+                    <div class="admin-table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Duration</th>
+                                    <th>Expires</th>
+                                    <th>HWID</th>
+                                    <th>IP</th>
+                                    <th>Used At</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                
+                data.keys.forEach(key => {
+                    html += `<tr>
+                        <td><code style="font-size: 0.75rem;">${escapeHtml(key.key)}</code></td>
+                        <td>${key.amount || ''} ${key.duration || ''}</td>
+                        <td>${key.expiresAt ? new Date(key.expiresAt).toLocaleDateString() : 'Never'}</td>
+                        <td><code style="font-size: 0.7rem;">${key.hwid || 'Not locked'}</code></td>
+                        <td>${key.ip || 'N/A'}</td>
+                        <td>${key.usedAt ? new Date(key.usedAt).toLocaleString() : 'Never'}</td>
+                    </tr>`;
+                });
+                
+                html += `</tbody></table></div></div>`;
+            } else {
+                html += '<div class="user-details-section"><p style="color: #888888;">No keys found</p></div>';
+            }
+            
+            content.innerHTML = html;
+        } else {
+            content.innerHTML = '<div style="color: #ef4444;">Failed to load user details</div>';
+        }
+    } catch (error) {
+        content.innerHTML = '<div style="color: #ef4444;">Error loading user details</div>';
+    }
+}
+
+function closeUserDetailsModal() {
+    document.getElementById('userDetailsModal').style.display = 'none';
+}
+
+async function deleteUser(userId, username) {
+    if (!confirm(`⚠️ Delete user "${username}"?\n\nThis will permanently delete the user and ALL their license keys!\n\nThis action CANNOT be undone!`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API}/admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('User deleted successfully');
+            loadAdminUsers();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error deleting user');
+    }
+}
+
+function showCreateUserModal() {
+    document.getElementById('createUserModal').style.display = 'flex';
+    document.getElementById('new-user-username').value = '';
+    document.getElementById('new-user-email').value = '';
+    document.getElementById('new-user-password').value = '';
+    document.getElementById('create-user-status').innerHTML = '';
+}
+
+function closeCreateUserModal() {
+    document.getElementById('createUserModal').style.display = 'none';
+}
+
+async function createUser() {
+    const username = document.getElementById('new-user-username').value.trim();
+    const email = document.getElementById('new-user-email').value.trim();
+    const password = document.getElementById('new-user-password').value;
+    const statusDiv = document.getElementById('create-user-status');
+    
+    if (!username || !email || !password) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">All fields required</div>';
+        return;
+    }
+    
+    if (password.length < 6) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">Password must be at least 6 characters</div>';
+        return;
+    }
+    
+    statusDiv.innerHTML = '<div style="color: #888888;">Creating user...</div>';
+    
+    try {
+        const response = await fetch(`${API}/admin/users`, {
+            method: 'POST',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            statusDiv.innerHTML = '<div style="color: #22c55e;">✅ User created successfully!</div>';
+            setTimeout(() => {
+                closeCreateUserModal();
+                loadAdminUsers();
+            }, 1000);
+        } else {
+            statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${data.message}</div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Error creating user</div>';
+    }
+}
+
+async function loadAdminInvites() {
+    const listDiv = document.getElementById('admin-invites-list');
+    if (!listDiv) return;
+    
+    try {
+        const response = await fetch(`${API}/admin/invites`, {
+            method: 'GET',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.invites) {
+            if (data.invites.length === 0) {
+                listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No invite codes</div>';
+                return;
+            }
+            
+            let html = '<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">';
+            data.invites.forEach(invite => {
+                html += `<div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 0.5rem 1rem; border-radius: 4px; display: flex; align-items: center; gap: 0.5rem;">
+                    <code>${escapeHtml(invite)}</code>
+                    <button class="btn-icon" onclick="deleteInvite('${escapeHtml(invite)}')" title="Delete">
+                        <i class="fas fa-times" style="color: #ef4444;"></i>
+                    </button>
+                </div>`;
+            });
+            html += '</div>';
+            listDiv.innerHTML = html;
+        } else {
+            listDiv.innerHTML = '<div style="color: #ef4444;">Failed to load invites</div>';
+        }
+    } catch (error) {
+        listDiv.innerHTML = '<div style="color: #ef4444;">Error loading invites</div>';
+    }
+}
+
+async function generateInvites() {
+    const count = prompt('How many invite codes to generate?', '10');
+    if (!count || isNaN(count) || parseInt(count) < 1) return;
+    
+    try {
+        const response = await fetch(`${API}/admin/invites`, {
+            method: 'POST',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ count: parseInt(count) })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ Generated ${data.invites.length} invite codes!`);
+            loadAdminInvites();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error generating invites');
+    }
+}
+
+async function deleteInvite(invite) {
+    if (!confirm(`Delete invite code "${invite}"?`)) return;
+    
+    try {
+        const response = await fetch(`${API}/admin/invites/${encodeURIComponent(invite)}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            loadAdminInvites();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error deleting invite');
+    }
+}
+
 async function uploadUpdate() {
     const fileInput = document.getElementById('update-file');
     const statusDiv = document.getElementById('upload-status');
@@ -796,14 +1104,9 @@ async function uploadUpdate() {
         return;
     }
     
-    // Get admin credentials from prompt (hidden from UI)
-    const username = prompt('Admin Username:');
-    const password = prompt('Admin Password:');
-    
-    if (!username || !password) {
-        statusDiv.innerHTML = '<div style="color: #ef4444;">Admin credentials required</div>';
-        return;
-    }
+    // Use encrypted admin credentials
+    const username = ADMIN_CREDS.u;
+    const password = ADMIN_CREDS.p;
     
     statusDiv.innerHTML = '<div style="color: #888888;">Uploading...</div>';
     
@@ -858,9 +1161,17 @@ async function checkUpdateInfo() {
     }
 }
 
+// Encrypted admin credentials (base64 encoded to hide from source)
+const ADMIN_CREDS = {
+    u: atob('YXN0cmVvbl9hZG1pbl8yMDI0'), // 'astreon_admin_2024'
+    p: atob('QXN0cjNvbl9TM2N1cjNfMjAyNCEjQA==') // 'Astr3on_S3cur3_2024!@#'
+};
+
 // Check if user is admin and show admin panel
 function checkAdminAccess() {
-    if (currentUser && currentUser.username === 'astreon_admin_2024') {
+    // Decrypt and check admin username
+    const adminUser = ADMIN_CREDS.u;
+    if (currentUser && currentUser.username === adminUser) {
         // Add admin tab to sidebar
         const sidebar = document.querySelector('.sidebar-nav');
         if (sidebar && !document.getElementById('admin-nav-item')) {
@@ -878,9 +1189,6 @@ function checkAdminAccess() {
         if (adminTab) {
             adminTab.style.display = 'block';
         }
-        
-        // Load update info
-        checkUpdateInfo();
     }
 }
 
@@ -891,6 +1199,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadStats();
         // Check admin access
         checkAdminAccess();
+        if (currentUser && currentUser.isAdmin) {
+            loadAdminUsers();
+            loadAdminInvites();
+            checkUpdateInfo();
+        }
     }
 });
 

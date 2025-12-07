@@ -381,10 +381,39 @@ if (auth.validateKey(userKey)) {
                 <div class="page-header">
                     <div>
                         <h1>Admin Panel</h1>
-                        <p class="page-subtitle">Upload new version for auto-update</p>
+                        <p class="page-subtitle">Manage users, keys, invites, and updates</p>
                     </div>
                 </div>
 
+                <!-- Users Management -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>All Users</h2>
+                        <button class="btn btn-primary" onclick="showCreateUserModal()">
+                            <i class="fas fa-plus"></i>
+                            <span>Create User</span>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="admin-users-list" class="loading">Loading users...</div>
+                    </div>
+                </div>
+
+                <!-- Invites Management -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Invite Codes</h2>
+                        <button class="btn btn-primary" onclick="generateInvites()">
+                            <i class="fas fa-plus"></i>
+                            <span>Generate Invites</span>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="admin-invites-list" class="loading">Loading invites...</div>
+                    </div>
+                </div>
+
+                <!-- File Upload -->
                 <div class="card">
                     <div class="card-header">
                         <h2>Upload Update</h2>
@@ -393,7 +422,7 @@ if (auth.validateKey(userKey)) {
                         <div class="form-section">
                             <label class="form-label">Select File (.exe)</label>
                             <input type="file" id="update-file" accept=".exe" class="form-input">
-                            <span class="form-hint">Upload the latest version of the cheat. Users will auto-update on next launch.</span>
+                            <span class="form-hint">Upload the latest version. Users will auto-update on next launch.</span>
                         </div>
                         <button class="btn btn-primary" onclick="uploadUpdate()">
                             <i class="fas fa-upload"></i>
@@ -409,6 +438,52 @@ if (auth.validateKey(userKey)) {
                     </div>
                     <div class="card-body">
                         <div id="update-info" class="loading">Checking...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Details Modal -->
+            <div id="userDetailsModal" class="modal">
+                <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-header">
+                        <h3 id="userDetailsTitle">User Details</h3>
+                        <button class="modal-close" onclick="closeUserDetailsModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="userDetailsContent" class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create User Modal -->
+            <div id="createUserModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Create New User</h3>
+                        <button class="modal-close" onclick="closeCreateUserModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-section">
+                            <label class="form-label">Username</label>
+                            <input type="text" id="new-user-username" placeholder="Enter username" class="form-input">
+                        </div>
+                        <div class="form-section">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="new-user-email" placeholder="Enter email" class="form-input">
+                        </div>
+                        <div class="form-section">
+                            <label class="form-label">Password</label>
+                            <input type="password" id="new-user-password" placeholder="Enter password (min 6 chars)" class="form-input">
+                        </div>
+                        <button class="btn btn-primary" onclick="createUser()">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Create User</span>
+                        </button>
+                        <div id="create-user-status" style="margin-top: 1rem;"></div>
                     </div>
                 </div>
             </div>
