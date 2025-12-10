@@ -300,9 +300,22 @@ async function loadKeys() {
                     statusClass = 'status-used';
                 }
                 
-                const expiryText = key.expiresAt 
-                    ? new Date(key.expiresAt).toLocaleString() 
-                    : 'Never';
+                // Determine expiry text: check if it's lifetime or just unused
+                let expiryText = 'Never';
+                if (key.expiresAt) {
+                    expiryText = new Date(key.expiresAt).toLocaleString();
+                } else {
+                    // Normalize duration (remove 's' from end) to check for lifetime
+                    const normalizedDuration = key.duration ? key.duration.toLowerCase().replace(/s$/, '') : '';
+                    if (normalizedDuration === 'lifetime') {
+                        expiryText = 'Lifetime';
+                    } else if (!key.usedAt) {
+                        // Key hasn't been used yet - show duration instead of "Never"
+                        const duration = key.duration || 'days';
+                        const amount = key.amount || 1;
+                        expiryText = `Not used (${amount} ${duration})`;
+                    }
+                }
                 
                 const ip = key.ip || '-';
                 const lastCheck = key.lastCheck 
@@ -981,7 +994,7 @@ async function viewUserDetails(userId) {
                     html += `<tr>
                         <td><code style="font-size: 0.75rem;">${escapeHtml(key.key)}</code></td>
                         <td>${key.amount || ''} ${key.duration || ''}</td>
-                        <td>${key.expiresAt ? new Date(key.expiresAt).toLocaleDateString() : 'Never'}</td>
+                        <td>${key.expiresAt ? new Date(key.expiresAt).toLocaleDateString() : ((key.duration && key.duration.toLowerCase().replace(/s$/, '') === 'lifetime') ? 'Lifetime' : (!key.usedAt ? `Not used (${key.amount || ''} ${key.duration || ''})` : 'Never'))}</td>
                         <td><code style="font-size: 0.7rem;">${key.hwid || 'Not locked'}</code></td>
                         <td>${key.ip || 'N/A'}</td>
                         <td>${key.usedAt ? new Date(key.usedAt).toLocaleString() : 'Never'}</td>
