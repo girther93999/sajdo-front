@@ -23,7 +23,7 @@ private:
     std::string getLocalIP();
     
 public:
-    AuthClient(const std::string& url = "http://localhost:3000");
+    AuthClient(const std::string& url  = "http://localhost:3000");
     
     void setCredentials(const std::string& accId, const std::string& token);
     bool validateKey(const std::string& key);
