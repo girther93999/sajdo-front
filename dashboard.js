@@ -1559,33 +1559,12 @@ function checkAdminAccess() {
     // Decrypt and check admin username
     const adminUser = ADMIN_CREDS.u;
     if (currentUser && currentUser.username === adminUser) {
-        // Add admin tabs to sidebar (if not already added)
-        const sidebar = document.querySelector('.sidebar-nav');
-        if (sidebar && !document.getElementById('admin-users-nav')) {
-            const adminButtons = [
-                { id: 'admin-users-nav', tab: 'admin-users', icon: 'fa-users', label: 'Admin • Users' },
-                { id: 'admin-resellers-nav', tab: 'admin-resellers', icon: 'fa-handshake', label: 'Admin • Resellers' },
-                { id: 'admin-invites-nav', tab: 'admin-invites', icon: 'fa-ticket-alt', label: 'Admin • Invites' },
-                { id: 'admin-updates-nav', tab: 'admin-updates', icon: 'fa-upload', label: 'Admin • Updates' },
-            ];
-            adminButtons.forEach(btnCfg => {
-                const btn = document.createElement('button');
-                btn.id = btnCfg.id;
-                btn.className = 'nav-item';
-                btn.setAttribute('data-tab', btnCfg.tab);
-                btn.onclick = () => showTab(btnCfg.tab);
-                btn.innerHTML = `<i class="fas ${btnCfg.icon}"></i><span>${btnCfg.label}</span>`;
-                sidebar.appendChild(btn);
-            });
-        }
-
-        // Show admin tabs (ensure visible)
-        ['admin-users-tab','admin-resellers-tab','admin-invites-tab','admin-updates-tab'].forEach(id => {
-            const tab = document.getElementById(id);
-            if (tab) tab.style.display = 'block';
+        currentUser.isAdmin = true;
+        // Unhide admin nav items
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = 'flex';
         });
-
-        // Default to admin users tab
+        // Ensure admin tabs exist (they’re in markup) and default to admin users
         showTab('admin-users');
     }
 }

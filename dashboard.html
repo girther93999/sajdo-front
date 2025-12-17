@@ -59,6 +59,23 @@
                     <i class="fas fa-code"></i>
                     <span>Integration</span>
                 </button>
+                <!-- Admin-only nav items (hidden for normal users) -->
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-users')" data-tab="admin-users">
+                    <i class="fas fa-users"></i>
+                    <span>Admin • Users</span>
+                </button>
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-resellers')" data-tab="admin-resellers">
+                    <i class="fas fa-handshake"></i>
+                    <span>Admin • Resellers</span>
+                </button>
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-invites')" data-tab="admin-invites">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Admin • Invites</span>
+                </button>
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-updates')" data-tab="admin-updates">
+                    <i class="fas fa-upload"></i>
+                    <span>Admin • Updates</span>
+                </button>
             </nav>
         </aside>
 
