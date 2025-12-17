@@ -394,145 +394,151 @@ if (auth.validateKey(userKey)) {
                 </div>
             </div>
 
-            <!-- Admin Panel (Hidden - only visible to admin) -->
-            <div id="admin-tab" class="tab-content" style="display: none;">
+            <!-- Admin Users Tab -->
+            <div id="admin-users-tab" class="tab-content" style="display: none;">
                 <div class="page-header">
                     <div>
-                        <h1>Admin Panel</h1>
-                        <p class="page-subtitle">Manage users, keys, invites, and updates</p>
+                        <h1>Admin • Users</h1>
+                        <p class="page-subtitle">View, ban, kick, and manage accounts</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>All Users</h2>
+                        <button class="btn btn-primary" onclick="showCreateUserModal()">
+                            <i class="fas fa-plus"></i>
+                            <span>Create User</span>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="admin-users-list" class="loading">Loading users...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Resellers Tab -->
+            <div id="admin-resellers-tab" class="tab-content" style="display: none;">
+                <div class="page-header">
+                    <div>
+                        <h1>Admin • Resellers</h1>
+                        <p class="page-subtitle">Manage reseller accounts and balances</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Resellers</h2>
+                        <button class="btn btn-primary" onclick="showCreateResellerModal()">
+                            <i class="fas fa-plus"></i>
+                            <span>Create Reseller</span>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="admin-resellers-list" class="loading">Loading resellers...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Invites Tab -->
+            <div id="admin-invites-tab" class="tab-content" style="display: none;">
+                <div class="page-header">
+                    <div>
+                        <h1>Admin • Invites</h1>
+                        <p class="page-subtitle">Generate and manage invite codes</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Invite Codes</h2>
+                        <button class="btn btn-primary" onclick="generateInvites()">
+                            <i class="fas a-plus"></i>
+                            <span>Generate Invites</span>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="admin-invites-list" class="loading">Loading invites...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Updates Tab -->
+            <div id="admin-updates-tab" class="tab-content" style="display: none;">
+                <div class="page-header">
+                    <div>
+                        <h1>Admin • Updates</h1>
+                        <p class="page-subtitle">Upload releases and view current versions</p>
                     </div>
                 </div>
 
-                <div class="card" style="margin-bottom:12px;">
-                    <div class="card-body" style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button id="admin-subnav-users" class="btn btn-primary" onclick="showAdminSubTab('users')"><i class="fas fa-users"></i><span>Users</span></button>
-                        <button id="admin-subnav-resellers" class="btn btn-secondary" onclick="showAdminSubTab('resellers')"><i class="fas fa-handshake"></i><span>Resellers</span></button>
-                        <button id="admin-subnav-invites" class="btn btn-secondary" onclick="showAdminSubTab('invites')"><i class="fas fa-ticket-alt"></i><span>Invites</span></button>
-                        <button id="admin-subnav-updates" class="btn btn-secondary" onclick="showAdminSubTab('updates')"><i class="fas fa-upload"></i><span>Updates</span></button>
+                <!-- Cheat Update Upload -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Upload Cheat Update</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-section">
+                            <label class="form-label">Version Number</label>
+                            <input type="text" id="update-version-cheat" class="form-input" placeholder="e.g., 1.0.0, 2.1.3" required>
+                            <span class="form-hint">Enter a unique version number. Clients will only update if their version differs.</span>
+                        </div>
+                        <div class="form-section" style="margin-top: 1rem;">
+                            <label class="form-label">What's Changed / Update Notes</label>
+                            <textarea id="update-changelog-cheat" class="form-input" rows="4" placeholder="e.g., Fixed bugs, Added new features, Performance improvements..." style="resize: vertical; min-height: 80px;"></textarea>
+                            <span class="form-hint">Describe what changed in this update. This will be sent to Discord.</span>
+                        </div>
+                        <div class="form-section" style="margin-top: 1rem;">
+                            <label class="form-label">Select File (.exe)</label>
+                            <input type="file" id="update-file-cheat" accept=".exe" class="form-input">
+                            <span class="form-hint">Upload the latest version. Users will auto-update on next launch.</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="uploadUpdate('cheat')">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload Cheat Update</span>
+                        </button>
+                        <div id="upload-status-cheat" style="margin-top: 1rem;"></div>
                     </div>
                 </div>
 
-                <!-- Users Management -->
-                <div class="admin-section" id="admin-section-users">
-                    <div class="card">
-                        <div class="card-header">
-                            <h2>All Users</h2>
-                            <button class="btn btn-primary" onclick="showCreateUserModal()">
-                                <i class="fas fa-plus"></i>
-                                <span>Create User</span>
-                            </button>
+                <!-- Spoofer Update Upload -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Upload Spoofer Update</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-section">
+                            <label class="form-label">Version Number</label>
+                            <input type="text" id="update-version-spoofer" class="form-input" placeholder="e.g., 0.0.1, 0.1.0" required>
+                            <span class="form-hint">Enter a unique version number. Clients will only update if their version differs.</span>
                         </div>
-                        <div class="card-body">
-                            <div id="admin-users-list" class="loading">Loading users...</div>
+                        <div class="form-section" style="margin-top: 1rem;">
+                            <label class="form-label">What's Changed / Update Notes</label>
+                            <textarea id="update-changelog-spoofer" class="form-input" rows="4" placeholder="e.g., Fixed bugs, Added new features, Performance improvements..." style="resize: vertical; min-height: 80px;"></textarea>
+                            <span class="form-hint">Describe what changed in this update. This will be sent to Discord.</span>
                         </div>
+                        <div class="form-section" style="margin-top: 1rem;">
+                            <label class="form-label">Select File (.exe)</label>
+                            <input type="file" id="update-file-spoofer" accept=".exe" class="form-input">
+                            <span class="form-hint">Upload the latest version. Users will auto-update on next launch.</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="uploadUpdate('spoofer')">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload Spoofer Update</span>
+                        </button>
+                        <div id="upload-status-spoofer" style="margin-top: 1 rem;"></div>
                     </div>
                 </div>
 
-                <!-- Resellers Management -->
-                <div class="admin-section" id="admin-section-resellers" style="display:none;">
-                    <div class="card">
-                        <div class="card-header">
-                            <h2>Resellers</h2>
-                            <button class="btn btn-primary" onclick="showCreateResellerModal()">
-                                <i class="fas fa-plus"></i>
-                                <span>Create Reseller</span>
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div id="admin-resellers-list" class="loading">Loading resellers...</div>
-                        </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Current Version Info</h2>
                     </div>
-                </div>
-
-                <!-- Invites Management -->
-                <div class="admin-section" id="admin-section-invites" style="display:none;">
-                    <div class="card">
-                        <div class="card-header">
-                            <h2>Invite Codes</h2>
-                            <button class="btn btn-primary" onclick="generateInvites()">
-                                <i class="fas fa-plus"></i>
-                                <span>Generate Invites</span>
-                            </button>
+                    <div class="card-body">
+                        <div style="margin-bottom: 1.5rem;">
+                            <h3 style="margin-bottom: 0.5rem; color: #ffffff;">Cheat</h3>
+                            <div id="update-info-cheat" class="loading">Checking...</div>
                         </div>
-                        <div class="card-body">
-                            <div id="admin-invites-list" class="loading">Loading invites...</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Updates Management -->
-                <div class="admin-section" id="admin-section-updates" style="display:none;">
-                    <!-- Cheat Update Upload -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h2>Upload Cheat Update</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-section">
-                                <label class="form-label">Version Number</label>
-                                <input type="text" id="update-version-cheat" class="form-input" placeholder="e.g., 1.0.0, 2.1.3" required>
-                                <span class="form-hint">Enter a unique version number. Clients will only update if their version differs.</span>
-                            </div>
-                            <div class="form-section" style="margin-top: 1rem;">
-                                <label class="form-label">What's Changed / Update Notes</label>
-                                <textarea id="update-changelog-cheat" class="form-input" rows="4" placeholder="e.g., Fixed bugs, Added new features, Performance improvements..." style="resize: vertical; min-height: 80px;"></textarea>
-                                <span class="form-hint">Describe what changed in this update. This will be sent to Discord.</span>
-                            </div>
-                            <div class="form-section" style="margin-top: 1rem;">
-                                <label class="form-label">Select File (.exe)</label>
-                                <input type="file" id="update-file-cheat" accept=".exe" class="form-input">
-                                <span class="form-hint">Upload the latest version. Users will auto-update on next launch.</span>
-                            </div>
-                            <button class="btn btn-primary" onclick="uploadUpdate('cheat')">
-                                <i class="fas fa-upload"></i>
-                                <span>Upload Cheat Update</span>
-                            </button>
-                            <div id="upload-status-cheat" style="margin-top: 1rem;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Spoofer Update Upload -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h2>Upload Spoofer Update</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-section">
-                                <label class="form-label">Version Number</label>
-                                <input type="text" id="update-version-spoofer" class="form-input" placeholder="e.g., 0.0.1, 0.1.0" required>
-                                <span class="form-hint">Enter a unique version number. Clients will only update if their version differs.</span>
-                            </div>
-                            <div class="form-section" style="margin-top: 1rem;">
-                                <label class="form-label">What's Changed / Update Notes</label>
-                                <textarea id="update-changelog-spoofer" class="form-input" rows="4" placeholder="e.g., Fixed bugs, Added new features, Performance improvements..." style="resize: vertical; min-height: 80px;"></textarea>
-                                <span class="form-hint">Describe what changed in this update. This will be sent to Discord.</span>
-                            </div>
-                            <div class="form-section" style="margin-top: 1rem;">
-                                <label class="form-label">Select File (.exe)</label>
-                                <input type="file" id="update-file-spoofer" accept=".exe" class="form-input">
-                                <span class="form-hint">Upload the latest version. Users will auto-update on next launch.</span>
-                            </div>
-                            <button class="btn btn-primary" onclick="uploadUpdate('spoofer')">
-                                <i class="fas fa-upload"></i>
-                                <span>Upload Spoofer Update</span>
-                            </button>
-                            <div id="upload-status-spoofer" style="margin-top: 1rem;"></div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h2>Current Version Info</h2>
-                        </div>
-                        <div class="card-body">
-                            <div style="margin-bottom: 1.5rem;">
-                                <h3 style="margin-bottom: 0.5rem; color: #ffffff;">Cheat</h3>
-                                <div id="update-info-cheat" class="loading">Checking...</div>
-                            </div>
-                            <div>
-                                <h3 style="margin-bottom: 0.5rem; color: #ffffff;">Spoofer</h3>
-                                <div id="update-info-spoofer" class="loading">Checking...</div>
-                            </div>
+                        <div>
+                            <h3 style="margin-bottom: 0.5rem; color: #ffffff;">Spoofer</h3>
+                            <div id="update-info-spoofer" class="loading">Checking...</div>
                         </div>
                     </div>
                 </div>

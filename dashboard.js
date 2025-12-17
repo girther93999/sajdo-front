@@ -624,11 +624,16 @@ function showTab(tabName) {
         loadKeys();
     } else if (tabName === 'overview') {
         loadStats();
-    } else if (tabName === 'admin' && currentUser && currentUser.isAdmin) {
-        loadAdminUsers();
-        loadAdminResellers();
-        loadAdminInvites();
-        checkUpdateInfo();
+    } else if (currentUser && currentUser.isAdmin) {
+        if (tabName === 'admin-users') {
+            loadAdminUsers();
+        } else if (tabName === 'admin-resellers') {
+            loadAdminResellers();
+        } else if (tabName === 'admin-invites') {
+            loadAdminInvites();
+        } else if (tabName === 'admin-updates') {
+            checkUpdateInfo();
+        }
     }
     
     // Close user menu if open
@@ -1554,59 +1559,34 @@ function checkAdminAccess() {
     // Decrypt and check admin username
     const adminUser = ADMIN_CREDS.u;
     if (currentUser && currentUser.username === adminUser) {
-        // Add admin tab to sidebar
+        // Add admin tabs to sidebar (if not already added)
         const sidebar = document.querySelector('.sidebar-nav');
-        if (sidebar && !document.getElementById('admin-nav-item')) {
-            const adminNav = document.createElement('button');
-            adminNav.id = 'admin-nav-item';
-            adminNav.className = 'nav-item';
-            adminNav.setAttribute('data-tab', 'admin');
-            adminNav.onclick = () => showTab('admin');
-            adminNav.innerHTML = '<i class="fas fa-shield-alt"></i><span>Admin</span>';
-            sidebar.appendChild(adminNav);
+        if (sidebar && !document.getElementById('admin-users-nav')) {
+            const adminButtons = [
+                { id: 'admin-users-nav', tab: 'admin-users', icon: 'fa-users', label: 'Admin • Users' },
+                { id: 'admin-resellers-nav', tab: 'admin-resellers', icon: 'fa-handshake', label: 'Admin • Resellers' },
+                { id: 'admin-invites-nav', tab: 'admin-invites', icon: 'fa-ticket-alt', label: 'Admin • Invites' },
+                { id: 'admin-updates-nav', tab: 'admin-updates', icon: 'fa-upload', label: 'Admin • Updates' },
+            ];
+            adminButtons.forEach(btnCfg => {
+                const btn = document.createElement('button');
+                btn.id = btnCfg.id;
+                btn.className = 'nav-item';
+                btn.setAttribute('data-tab', btnCfg.tab);
+                btn.onclick = () => showTab(btnCfg.tab);
+                btn.innerHTML = `<i class="fas ${btnCfg.icon}"></i><span>${btnCfg.label}</span>`;
+                sidebar.appendChild(btn);
+            });
         }
-        
-        // Show admin tab
-        const adminTab = document.getElementById('admin-tab');
-        if (adminTab) {
-            adminTab.style.display = 'block';
-        }
 
-        // Default admin sub-tab
-        showAdminSubTab('users');
-    }
-}
+        // Show admin tabs (ensure visible)
+        ['admin-users-tab','admin-resellers-tab','admin-invites-tab','admin-updates-tab'].forEach(id => {
+            const tab = document.getElementById(id);
+            if (tab) tab.style.display = 'block';
+        });
 
-// Admin sub-tabs (Users, Resellers, Invites, Updates)
-function showAdminSubTab(tabName) {
-    const sections = document.querySelectorAll('.admin-section');
-    sections.forEach(sec => {
-        sec.style.display = sec.id === `admin-section-${tabName}` ? 'block' : 'none';
-    });
-
-    // Update subnav button styles
-    ['users', 'resellers', 'invites', 'updates'].forEach(name => {
-        const btn = document.getElementById(`admin-subnav-${name}`);
-        if (btn) {
-            if (name === tabName) {
-                btn.classList.remove('btn-secondary');
-                btn.classList.add('btn-primary');
-            } else {
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-secondary');
-            }
-        }
-    });
-
-    // Lazy-load per tab
-    if (tabName === 'users') {
-        loadAdminUsers();
-    } else if (tabName === 'resellers') {
-        loadAdminResellers();
-    } else if (tabName === 'invites') {
-        loadAdminInvites();
-    } else if (tabName === 'updates') {
-        checkUpdateInfo();
+        // Default to admin users tab
+        showTab('admin-users');
     }
 }
 
