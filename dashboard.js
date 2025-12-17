@@ -600,15 +600,17 @@ function showTab(tabName) {
     if (tabName === 'generate') {
         loadKeyPreferences();
     }
-    // Hide all tabs
+    // Hide all tabs and reset display
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
+        tab.style.display = 'none';
     });
     
     // Show selected tab
     const tabElement = document.getElementById(tabName + '-tab');
     if (tabElement) {
         tabElement.classList.add('active');
+        tabElement.style.display = 'block';
     }
     
     // Update nav items
