@@ -1560,6 +1560,8 @@ function checkAdminAccess() {
     const adminUser = ADMIN_CREDS.u;
     if (currentUser && currentUser.username === adminUser) {
         currentUser.isAdmin = true;
+        // Hide user nav items, show admin nav items
+        document.querySelectorAll('.user-nav').forEach(el => el.style.display = 'none');
         // Unhide admin nav items
         document.querySelectorAll('.admin-only').forEach(el => {
             el.style.display = 'flex';
