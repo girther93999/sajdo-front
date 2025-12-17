@@ -1326,40 +1326,78 @@ async function uploadUpdate() {
 }
 
 async function checkUpdateInfo() {
-    const infoDiv = document.getElementById('update-info');
+    const cheatInfoDiv = document.getElementById('update-info-cheat');
+    const spooferInfoDiv = document.getElementById('update-info-spoofer');
     
+    // Helper to render status
+    const render = (el, html) => { if (el) el.innerHTML = html; };
+    
+    // Check cheat update
     try {
-        const response = await fetch(`${API.replace('/api', '')}/api/updates/check`);
-        const data = await response.json();
+        const cheatResponse = await fetch(`${API.replace('/api', '')}/api/updates/check?program=cheat`);
+        const cheatData = await cheatResponse.json();
         
-        if (data.success) {
-            if (data.hasUpdate) {
-                const sizeMB = (data.size / 1024 / 1024).toFixed(2);
-                const date = new Date(data.modifiedAt).toLocaleString();
-                infoDiv.innerHTML = `
+        if (cheatData.success) {
+            if (cheatData.hasUpdate) {
+                const sizeMB = (cheatData.size / 1024 / 1024).toFixed(2);
+                const date = new Date(cheatData.modifiedAt).toLocaleString();
+                render(cheatInfoDiv, `
                     <div style="color: #22c55e;">
                         <strong>✅ Update Available</strong><br>
-                        <strong>Current Version: ${data.serverVersion || data.version || 'N/A'}</strong><br>
-                        File: ${data.filename}<br>
+                        <strong>Current Version: ${cheatData.serverVersion || cheatData.version || 'N/A'}</strong><br>
+                        File: ${cheatData.filename}<br>
                         Size: ${sizeMB} MB<br>
                         Uploaded: ${date}
                     </div>
-                `;
+                `);
             } else {
-                // No update available, but show current version if available
-                const versionInfo = data.serverVersion || data.version || 'N/A';
-                infoDiv.innerHTML = `
+                const versionInfo = cheatData.serverVersion || cheatData.version || 'N/A';
+                render(cheatInfoDiv, `
                     <div style="color: #888888;">
                         <strong>Current Version: ${versionInfo}</strong><br>
                         No update file available
                     </div>
-                `;
+                `);
             }
         } else {
-            infoDiv.innerHTML = '<div style="color: #888888;">No update file available</div>';
+            render(cheatInfoDiv, '<div style="color: #888888;">No update file available</div>');
         }
     } catch (error) {
-        infoDiv.innerHTML = '<div style="color: #ef4444;">Error checking update info</div>';
+        render(cheatInfoDiv, '<div style="color: #ef4444;">Error checking update info</div>');
+    }
+    
+    // Check spoofer update
+    try {
+        const spooferResponse = await fetch(`${API.replace('/api', '')}/api/updates/check?program=spoofer`);
+        const spooferData = await spooferResponse.json();
+        
+        if (spooferData.success) {
+            if (spooferData.hasUpdate) {
+                const sizeMB = (spooferData.size / 1024 / 1024).toFixed(2);
+                const date = new Date(spooferData.modifiedAt).toLocaleString();
+                render(spooferInfoDiv, `
+                    <div style="color: #22c55e;">
+                        <strong>✅ Update Available</strong><br>
+                        <strong>Current Version: ${spooferData.serverVersion || spooferData.version || 'N/A'}</strong><br>
+                        File: ${spooferData.filename}<br>
+                        Size: ${sizeMB} MB<br>
+                        Uploaded: ${date}
+                    </div>
+                `);
+            } else {
+                const versionInfo = spooferData.serverVersion || spooferData.version || 'N/A';
+                render(spooferInfoDiv, `
+                    <div style="color: #888888;">
+                        <strong>Current Version: ${versionInfo}</strong><br>
+                        No update file available
+                    </div>
+                `);
+            }
+        } else {
+            render(spooferInfoDiv, '<div style="color: #888888;">No update file available</div>');
+        }
+    } catch (error) {
+        render(spooferInfoDiv, '<div style="color: #ef4444;">Error checking update info</div>');
     }
 }
 
