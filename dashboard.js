@@ -1571,6 +1571,42 @@ function checkAdminAccess() {
         if (adminTab) {
             adminTab.style.display = 'block';
         }
+
+        // Default admin sub-tab
+        showAdminSubTab('users');
+    }
+}
+
+// Admin sub-tabs (Users, Resellers, Invites, Updates)
+function showAdminSubTab(tabName) {
+    const sections = document.querySelectorAll('.admin-section');
+    sections.forEach(sec => {
+        sec.style.display = sec.id === `admin-section-${tabName}` ? 'block' : 'none';
+    });
+
+    // Update subnav button styles
+    ['users', 'resellers', 'invites', 'updates'].forEach(name => {
+        const btn = document.getElementById(`admin-subnav-${name}`);
+        if (btn) {
+            if (name === tabName) {
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-primary');
+            } else {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            }
+        }
+    });
+
+    // Lazy-load per tab
+    if (tabName === 'users') {
+        loadAdminUsers();
+    } else if (tabName === 'resellers') {
+        loadAdminResellers();
+    } else if (tabName === 'invites') {
+        loadAdminInvites();
+    } else if (tabName === 'updates') {
+        checkUpdateInfo();
     }
 }
 
