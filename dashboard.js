@@ -1269,25 +1269,27 @@ async function deleteInvite(invite, hash) {
     }
 }
 
-async function uploadUpdate() {
-    const fileInput = document.getElementById('update-file');
-    const versionInput = document.getElementById('update-version');
-    const changelogInput = document.getElementById('update-changelog');
-    const statusDiv = document.getElementById('upload-status');
+async function uploadUpdate(program) {
+    const programType = program === 'spoofer' ? 'spoofer' : 'cheat';
     
-    if (!versionInput.value || versionInput.value.trim() === '') {
-        statusDiv.innerHTML = '<div style="color: #ef4444;">Please enter a version number</div>';
+    const fileInput = document.getElementById(`update-file-${programType}`);
+    const versionInput = document.getElementById(`update-version-${programType}`);
+    const changelogInput = document.getElementById(`update-changelog-${programType}`);
+    const statusDiv = document.getElementById(`upload-status-${programType}`);
+    
+    if (!versionInput?.value || versionInput.value.trim() === '') {
+        if (statusDiv) statusDiv.innerHTML = '<div style="color: #ef4444;">Please enter a version number</div>';
         return;
     }
     
-    if (!fileInput.files || !fileInput.files[0]) {
-        statusDiv.innerHTML = '<div style="color: #ef4444;">Please select a file</div>';
+    if (!fileInput?.files || !fileInput.files[0]) {
+        if (statusDiv) statusDiv.innerHTML = '<div style="color: #ef4444;">Please select a file</div>';
         return;
     }
     
     const file = fileInput.files[0];
     if (!file.name.endsWith('.exe')) {
-        statusDiv.innerHTML = '<div style="color: #ef4444;">Only .exe files are allowed</div>';
+        if (statusDiv) statusDiv.innerHTML = '<div style="color: #ef4444;">Only .exe files are allowed</div>';
         return;
     }
     
@@ -1295,12 +1297,13 @@ async function uploadUpdate() {
     const username = ADMIN_CREDS.u;
     const password = ADMIN_CREDS.p;
     
-    statusDiv.innerHTML = '<div style="color: #888888;">Uploading...</div>';
+    if (statusDiv) statusDiv.innerHTML = '<div style="color: #888888;">Uploading...</div>';
     
     const formData = new FormData();
     formData.append('file', file);
     formData.append('version', versionInput.value.trim());
-    formData.append('changelog', changelogInput.value.trim() || 'No changes specified');
+    formData.append('changelog', changelogInput?.value?.trim() || 'No changes specified');
+    formData.append('program', programType);
     formData.append('username', username);
     formData.append('password', password);
     
@@ -1313,15 +1316,16 @@ async function uploadUpdate() {
         const data = await response.json();
         
         if (data.success) {
-            statusDiv.innerHTML = `<div style="color: #22c55e;">✅ Upload successful! Version: ${data.version}, File: ${data.filename}, Size: ${(data.size / 1024 / 1024).toFixed(2)} MB</div>`;
+            if (statusDiv) statusDiv.innerHTML = `<div style="color: #22c55e;">✅ Upload successful! Version: ${data.version}, File: ${data.filename}, Size: ${(data.size / 1024 / 1024).toFixed(2)} MB</div>`;
             fileInput.value = '';
             versionInput.value = '';
+            if (changelogInput) changelogInput.value = '';
             checkUpdateInfo();
         } else {
-            statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${data.message}</div>`;
+            if (statusDiv) statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${data.message}</div>`;
         }
     } catch (error) {
-        statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Upload failed. Please try again.</div>';
+        if (statusDiv) statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Upload failed. Please try again.</div>';
     }
 }
 
