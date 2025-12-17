@@ -164,10 +164,28 @@
 
                 <div class="card">
                     <div class="card-body">
+                        <div class="table-actions-bar" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:12px;">
+                            <button class="btn btn-secondary" onclick="deleteSelectedKeys()">
+                                <i class="fas fa-trash"></i>
+                                <span>Delete Selected</span>
+                            </button>
+                            <button class="btn btn-secondary" onclick="deleteExpiredKeys()">
+                                <i class="fas fa-clock"></i>
+                                <span>Delete Expired</span>
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteAllKeys()">
+                                <i class="fas fa-ban"></i>
+                                <span>Delete All</span>
+                            </button>
+                            <div id="keys-selection-status" style="align-self:center; color:#888; font-size:12px; margin-left:4px;"></div>
+                        </div>
                         <div class="table-wrapper">
                             <table>
                                 <thead>
                                     <tr>
+                                        <th style="width:36px; text-align:center;">
+                                            <input type="checkbox" id="keys-select-all" onclick="toggleSelectAllKeys(this.checked)">
+                                        </th>
                                         <th>Key</th>
                                         <th>Status</th>
                                         <th>Expires</th>
@@ -179,7 +197,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="keys-table">
-                                    <tr><td colspan="8" class="loading">Loading keys...</td></tr>
+                                    <tr><td colspan="9" class="loading">Loading keys...</td></tr>
                                 </tbody>
                             </table>
                         </div>

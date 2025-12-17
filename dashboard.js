@@ -3,6 +3,8 @@ const API = 'https://answub-back.onrender.com/api';
 let currentModalKey = '';
 let currentToken = '';
 let currentUser = null;
+let keysCache = [];
+let selectedKeys = new Set();
 
 // Security: Clear any keys from localStorage
 function clearLocalKeys() {
@@ -269,11 +271,15 @@ async function loadKeys() {
         const data = await response.json();
         
         if (data.success) {
+            keysCache = data.keys || [];
+            selectedKeys.clear();
             const tbody = document.getElementById('keys-table');
             tbody.innerHTML = '';
             
             if (data.keys.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="loading">No keys generated yet</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="loading">No keys generated yet</td></tr>';
+                updateSelectionStatus();
+                updateSelectAllCheckbox();
                 return;
             }
             
@@ -325,6 +331,9 @@ async function loadKeys() {
                 }
                 
                 tr.innerHTML = `
+                    <td style="text-align:center;">
+                        <input type="checkbox" class="key-row-checkbox" data-key="${key.key}" onclick="toggleKeySelection(this.dataset.key, this.checked)">
+                    </td>
                     <td><code>${key.key}</code></td>
                     <td><span class="status ${statusClass}">${status}</span></td>
                     <td>${expiryText}</td>
@@ -343,6 +352,9 @@ async function loadKeys() {
                 
                 tbody.appendChild(tr);
             });
+
+            updateSelectionStatus();
+            updateSelectAllCheckbox();
         }
     } catch (error) {
         console.error('Error loading keys:', error);
@@ -435,6 +447,16 @@ async function deleteKey(key) {
         return;
     }
     
+    const ok = await deleteKeyApi(key);
+    if (ok) {
+        loadKeys();
+        loadStats();
+    } else {
+        alert('Error deleting key');
+    }
+}
+
+async function deleteKeyApi(key) {
     try {
         const response = await fetch(`${API}/keys/${encodeURIComponent(key)}`, {
             method: 'DELETE',
@@ -442,18 +464,87 @@ async function deleteKey(key) {
                 'Authorization': currentToken
             }
         });
-        
         const data = await response.json();
-        
-        if (data.success) {
-            loadKeys();
-            loadStats();
-        } else {
-            alert('Error deleting key');
-        }
+        return !!data.success;
     } catch (error) {
-        alert('Error deleting key');
+        console.error('Error deleting key', error);
+        return false;
     }
+}
+
+// Bulk selection helpers
+function updateSelectionStatus() {
+    const statusEl = document.getElementById('keys-selection-status');
+    if (!statusEl) return;
+    const total = keysCache.length;
+    const selected = selectedKeys.size;
+    statusEl.textContent = total ? `${selected}/${total} selected` : 'No keys';
+}
+
+function updateSelectAllCheckbox() {
+    const allBox = document.getElementById('keys-select-all');
+    if (!allBox) return;
+    const total = keysCache.length;
+    const selected = selectedKeys.size;
+    allBox.checked = total > 0 && selected === total;
+    allBox.indeterminate = selected > 0 && selected < total;
+}
+
+function toggleSelectAllKeys(checked) {
+    selectedKeys.clear();
+    if (checked) {
+        keysCache.forEach(k => selectedKeys.add(k.key));
+    }
+    document.querySelectorAll('.key-row-checkbox').forEach(cb => {
+        cb.checked = checked;
+    });
+    updateSelectionStatus();
+    updateSelectAllCheckbox();
+}
+
+function toggleKeySelection(key, checked) {
+    if (checked) selectedKeys.add(key); else selectedKeys.delete(key);
+    updateSelectionStatus();
+    updateSelectAllCheckbox();
+}
+
+async function deleteSelectedKeys() {
+    if (selectedKeys.size === 0) {
+        alert('Select at least one key to delete.');
+        return;
+    }
+    if (!confirm(`Delete ${selectedKeys.size} selected key(s)?`)) return;
+    await bulkDeleteKeys(Array.from(selectedKeys));
+}
+
+async function deleteExpiredKeys() {
+    const now = new Date();
+    const expired = keysCache.filter(k => k.expiresAt && new Date(k.expiresAt) < now).map(k => k.key);
+    if (expired.length === 0) {
+        alert('No expired keys to delete.');
+        return;
+    }
+    if (!confirm(`Delete ${expired.length} expired key(s)?`)) return;
+    await bulkDeleteKeys(expired);
+}
+
+async function deleteAllKeys() {
+    if (keysCache.length === 0) {
+        alert('No keys to delete.');
+        return;
+    }
+    if (!confirm(`Delete ALL ${keysCache.length} keys? This cannot be undone.`)) return;
+    await bulkDeleteKeys(keysCache.map(k => k.key));
+}
+
+async function bulkDeleteKeys(keys) {
+    const results = await Promise.all(keys.map(k => deleteKeyApi(k)));
+    const successCount = results.filter(Boolean).length;
+    if (successCount !== keys.length) {
+        alert(`Deleted ${successCount}/${keys.length} keys. Some deletions failed.`);
+    }
+    await loadKeys();
+    await loadStats();
 }
 
 // Close modal when clicking outside
