@@ -955,23 +955,26 @@ async function loadAdminUsers() {
             }
             
             let html = '<div class="admin-table-container"><table class="admin-table"><thead><tr>';
-            html += '<th>Username</th><th>Email</th><th>Keys</th><th>Created</th><th>Last Login</th><th>Actions</th>';
+            html += '<th>Username</th><th>Email</th><th>Keys</th><th>Created</th><th>Last Login</th><th>Last IP</th><th>Status</th><th>Actions</th>';
             html += '</tr></thead><tbody>';
             
             data.users.forEach(user => {
+                const banned = user.banned ? '<span class="status status-expired">Banned</span>' : '<span class="status status-active">OK</span>';
                 html += `<tr>
                     <td><strong>${escapeHtml(user.username)}</strong></td>
                     <td>${escapeHtml(user.email)}</td>
                     <td>${user.keyCount}</td>
                     <td>${new Date(user.createdAt).toLocaleDateString()}</td>
                     <td>${user.lastLogin === 'Never' ? 'Never' : new Date(user.lastLogin).toLocaleDateString()}</td>
-                    <td>
-                        <button class="btn btn-secondary" onclick="viewUserDetails('${user.id}')" title="View Details">
-                            <i class="fas fa-eye"></i>
+                    <td>${escapeHtml(user.lastIp || 'Unknown')}</td>
+                    <td>${banned}</td>
+                    <td style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button class="btn btn-secondary" onclick="viewUserDetails('${user.id}')" title="View Details"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-secondary" onclick="kickUser('${user.id}')" title="Kick (rotate token)"><i class="fas fa-sign-out-alt"></i></button>
+                        <button class="btn ${user.banned ? 'btn-primary' : 'btn-danger'}" onclick="toggleBanUser('${user.id}', ${user.banned ? 'false' : 'true'})" title="${user.banned ? 'Unban' : 'Ban'}">
+                            <i class="fas ${user.banned ? 'fa-unlock' : 'fa-ban'}"></i>
                         </button>
-                        <button class="btn btn-danger" onclick="deleteUser('${user.id}', '${escapeHtml(user.username)}')" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <button class="btn btn-danger" onclick="deleteUser('${user.id}', '${escapeHtml(user.username)}')" title="Delete"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>`;
             });
@@ -1013,8 +1016,10 @@ async function viewUserDetails(userId) {
                 <p><strong>ID:</strong> ${data.user.id}</p>
                 <p><strong>Username:</strong> ${escapeHtml(data.user.username)}</p>
                 <p><strong>Email:</strong> ${escapeHtml(data.user.email)}</p>
+                <p><strong>Status:</strong> ${data.user.banned ? '<span class="status status-expired">Banned</span>' : '<span class="status status-active">OK</span>'}</p>
                 <p><strong>Created:</strong> ${new Date(data.user.createdAt).toLocaleString()}</p>
                 <p><strong>Last Login:</strong> ${data.user.lastLogin === 'Never' ? 'Never' : new Date(data.user.lastLogin).toLocaleString()}</p>
+                <p><strong>Last IP:</strong> ${escapeHtml(data.user.lastIp || 'Unknown')}</p>
                 ${data.user.accountType ? `<p><strong>Account Type:</strong> ${escapeHtml(data.user.accountType)}</p>` : ''}
                 ${data.user.balance !== undefined ? `<p><strong>Balance:</strong> $${parseFloat(data.user.balance || 0).toFixed(2)}</p>` : ''}
             </div>`;
@@ -1095,6 +1100,48 @@ async function viewUserDetails(userId) {
 
 function closeUserDetailsModal() {
     document.getElementById('userDetailsModal').style.display = 'none';
+}
+
+async function toggleBanUser(userId, banned) {
+    try {
+        const response = await fetch(`${API}/admin/users/${userId}/ban`, {
+            method: 'POST',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ banned })
+        });
+        const data = await response.json();
+        if (data.success) {
+            loadAdminUsers();
+        } else {
+            alert('Error updating ban status');
+        }
+    } catch (error) {
+        alert('Error updating ban status');
+    }
+}
+
+async function kickUser(userId) {
+    if (!confirm('Kick this user? This will rotate their token and log them out.')) return;
+    try {
+        const response = await fetch(`${API}/admin/users/${userId}/kick`, {
+            method: 'POST',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+        if (data.success) {
+            loadAdminUsers();
+        } else {
+            alert('Error kicking user');
+        }
+    } catch (error) {
+        alert('Error kicking user');
+    }
 }
 
 async function deleteUser(userId, username) {
