@@ -9,7 +9,7 @@ function clearLocalKeys() {
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.includes('key') && key !== 'artic_token' && key !== 'artic_user') {
+        if (key && key.includes('key') && key !== 'astreon_token' && key !== 'astreon_user') {
             keysToRemove.push(key);
         }
     }
@@ -21,8 +21,8 @@ async function checkAuth() {
     // Clear any local keys on page load (security)
     clearLocalKeys();
     
-    currentToken = localStorage.getItem('artic_token');
-    const userStr = localStorage.getItem('artic_user');
+    currentToken = localStorage.getItem('astreon_token');
+    const userStr = localStorage.getItem('astreon_user');
     
     if (!currentToken || !userStr) {
         // No auth, redirect to login
@@ -34,8 +34,8 @@ async function checkAuth() {
         currentUser = JSON.parse(userStr);
     } catch (e) {
         // Invalid user data
-        localStorage.removeItem('artic_token');
-        localStorage.removeItem('artic_user');
+        localStorage.removeItem('astreon_token');
+        localStorage.removeItem('astreon_user');
         window.location.href = 'index.html';
         return false;
     }
@@ -61,7 +61,7 @@ async function checkAuth() {
             if (data.message) {
                 if (data.message.includes('Database reset') || data.message.includes('Session expired')) {
                     // Check if we have backup data - try to restore session
-                    const backupStr = localStorage.getItem('_artic_backup');
+                    const backupStr = localStorage.getItem('_astreon_backup');
                     if (backupStr) {
                         try {
                             const backupData = JSON.parse(atob(backupStr));
@@ -77,8 +77,8 @@ async function checkAuth() {
                                 .then(verifyData => {
                                     if (verifyData.success) {
                                         // Backup token still valid - restore session
-                                        localStorage.setItem('artic_token', backupData.token);
-                                        localStorage.setItem('artic_user', JSON.stringify(verifyData.user));
+                                        localStorage.setItem('astreon_token', backupData.token);
+                                        localStorage.setItem('astreon_user', JSON.stringify(verifyData.user));
                                         window.location.reload();
                                     } else {
                                         alert(`Your session expired. Your account "${backupData.username}" may still exist. Please try logging in again.`);
@@ -133,11 +133,11 @@ async function checkAuth() {
 function logout() {
     // Clear all auth data and any cached keys
     // Keep backup data for recovery (hidden, not visible on web)
-    const backupData = localStorage.getItem('_artic_backup');
+    const backupData = localStorage.getItem('_astreon_backup');
     localStorage.clear();
     sessionStorage.clear();
     if (backupData) {
-        localStorage.setItem('_artic_backup', backupData);
+        localStorage.setItem('_astreon_backup', backupData);
     }
     window.location.href = 'index.html';
 }
@@ -176,9 +176,9 @@ async function loadStats() {
 
 // Load saved key generation preferences
 function loadKeyPreferences() {
-    const savedFormat = localStorage.getItem('artic_key_format');
-    const savedDuration = localStorage.getItem('artic_key_duration');
-    const savedAmount = localStorage.getItem('artic_key_amount');
+    const savedFormat = localStorage.getItem('astreon_key_format');
+    const savedDuration = localStorage.getItem('astreon_key_duration');
+    const savedAmount = localStorage.getItem('astreon_key_amount');
     
     if (savedFormat) {
         document.getElementById('format').value = savedFormat;
@@ -193,9 +193,9 @@ function loadKeyPreferences() {
 
 // Save key generation preferences
 function saveKeyPreferences(format, duration, amount) {
-    localStorage.setItem('artic_key_format', format);
-    localStorage.setItem('artic_key_duration', duration);
-    localStorage.setItem('artic_key_amount', amount);
+    localStorage.setItem('astreon_key_format', format);
+    localStorage.setItem('astreon_key_duration', duration);
+    localStorage.setItem('astreon_key_amount', amount);
 }
 
 // Generate key
@@ -300,22 +300,9 @@ async function loadKeys() {
                     statusClass = 'status-used';
                 }
                 
-                // Determine expiry text: check if it's lifetime or just unused
-                let expiryText = 'Never';
-                if (key.expiresAt) {
-                    expiryText = new Date(key.expiresAt).toLocaleString();
-                } else {
-                    // Normalize duration (remove 's' from end) to check for lifetime
-                    const normalizedDuration = key.duration ? key.duration.toLowerCase().replace(/s$/, '') : '';
-                    if (normalizedDuration === 'lifetime') {
-                        expiryText = 'Lifetime';
-                    } else if (!key.usedAt) {
-                        // Key hasn't been used yet - show duration instead of "Never"
-                        const duration = key.duration || 'days';
-                        const amount = key.amount || 1;
-                        expiryText = `Not used (${amount} ${duration})`;
-                    }
-                }
+                const expiryText = key.expiresAt 
+                    ? new Date(key.expiresAt).toLocaleString() 
+                    : 'Never';
                 
                 const ip = key.ip || '-';
                 const lastCheck = key.lastCheck 
@@ -650,7 +637,7 @@ async function showFile(filename) {
             if (e.target === modal) modal.remove();
         });
     } catch (error) {
-        alert(`To view ${filename}:\n\n1. Go to your local project folder\n2. Open ${filename} in your editor\n\nThese files are in the root of your Artic auth folder.`);
+        alert(`To view ${filename}:\n\n1. Go to your local project folder\n2. Open ${filename} in your editor\n\nThese files are in the root of your Astreon auth folder.`);
     }
 }
 
@@ -729,7 +716,7 @@ async function updateUsername() {
             document.getElementById('username-display').textContent = newUsername;
             document.getElementById('account-username').textContent = newUsername;
             currentUser.username = newUsername;
-            localStorage.setItem('artic_user', JSON.stringify(currentUser));
+            localStorage.setItem('astreon_user', JSON.stringify(currentUser));
         } else {
             alert('Error: ' + data.message);
         }
@@ -764,7 +751,7 @@ async function updateEmail() {
             alert('Email updated successfully!');
             document.getElementById('new-email').value = '';
             currentUser.email = newEmail;
-            localStorage.setItem('artic_user', JSON.stringify(currentUser));
+            localStorage.setItem('astreon_user', JSON.stringify(currentUser));
         } else {
             alert('Error: ' + data.message);
         }
@@ -994,7 +981,7 @@ async function viewUserDetails(userId) {
                     html += `<tr>
                         <td><code style="font-size: 0.75rem;">${escapeHtml(key.key)}</code></td>
                         <td>${key.amount || ''} ${key.duration || ''}</td>
-                        <td>${key.expiresAt ? new Date(key.expiresAt).toLocaleDateString() : ((key.duration && key.duration.toLowerCase().replace(/s$/, '') === 'lifetime') ? 'Lifetime' : (!key.usedAt ? `Not used (${key.amount || ''} ${key.duration || ''})` : 'Never'))}</td>
+                        <td>${key.expiresAt ? new Date(key.expiresAt).toLocaleDateString() : 'Never'}</td>
                         <td><code style="font-size: 0.7rem;">${key.hwid || 'Not locked'}</code></td>
                         <td>${key.ip || 'N/A'}</td>
                         <td>${key.usedAt ? new Date(key.usedAt).toLocaleString() : 'Never'}</td>
@@ -1282,12 +1269,11 @@ async function deleteInvite(invite, hash) {
     }
 }
 
-async function uploadUpdate(program) {
-    const programType = program === 'spoofer' ? 'spoofer' : 'cheat';
-    const fileInput = document.getElementById(`update-file-${programType}`);
-    const versionInput = document.getElementById(`update-version-${programType}`);
-    const changelogInput = document.getElementById(`update-changelog-${programType}`);
-    const statusDiv = document.getElementById(`upload-status-${programType}`);
+async function uploadUpdate() {
+    const fileInput = document.getElementById('update-file');
+    const versionInput = document.getElementById('update-version');
+    const changelogInput = document.getElementById('update-changelog');
+    const statusDiv = document.getElementById('upload-status');
     
     if (!versionInput.value || versionInput.value.trim() === '') {
         statusDiv.innerHTML = '<div style="color: #ef4444;">Please enter a version number</div>';
@@ -1315,7 +1301,6 @@ async function uploadUpdate(program) {
     formData.append('file', file);
     formData.append('version', versionInput.value.trim());
     formData.append('changelog', changelogInput.value.trim() || 'No changes specified');
-    formData.append('program', programType);
     formData.append('username', username);
     formData.append('password', password);
     
@@ -1331,7 +1316,6 @@ async function uploadUpdate(program) {
             statusDiv.innerHTML = `<div style="color: #22c55e;">✅ Upload successful! Version: ${data.version}, File: ${data.filename}, Size: ${(data.size / 1024 / 1024).toFixed(2)} MB</div>`;
             fileInput.value = '';
             versionInput.value = '';
-            changelogInput.value = '';
             checkUpdateInfo();
         } else {
             statusDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${data.message}</div>`;
@@ -1342,30 +1326,29 @@ async function uploadUpdate(program) {
 }
 
 async function checkUpdateInfo() {
-    const cheatInfoDiv = document.getElementById('update-info-cheat');
-    const spooferInfoDiv = document.getElementById('update-info-spoofer');
+    const infoDiv = document.getElementById('update-info');
     
-    // Check cheat update
     try {
-        const cheatResponse = await fetch(`${API.replace('/api', '')}/api/updates/check?program=cheat`);
-        const cheatData = await cheatResponse.json();
+        const response = await fetch(`${API.replace('/api', '')}/api/updates/check`);
+        const data = await response.json();
         
-        if (cheatData.success) {
-            if (cheatData.hasUpdate) {
-                const sizeMB = (cheatData.size / 1024 / 1024).toFixed(2);
-                const date = new Date(cheatData.modifiedAt).toLocaleString();
-                cheatInfoDiv.innerHTML = `
+        if (data.success) {
+            if (data.hasUpdate) {
+                const sizeMB = (data.size / 1024 / 1024).toFixed(2);
+                const date = new Date(data.modifiedAt).toLocaleString();
+                infoDiv.innerHTML = `
                     <div style="color: #22c55e;">
                         <strong>✅ Update Available</strong><br>
-                        <strong>Current Version: ${cheatData.serverVersion || cheatData.version || 'N/A'}</strong><br>
-                        File: ${cheatData.filename}<br>
+                        <strong>Current Version: ${data.serverVersion || data.version || 'N/A'}</strong><br>
+                        File: ${data.filename}<br>
                         Size: ${sizeMB} MB<br>
                         Uploaded: ${date}
                     </div>
                 `;
             } else {
-                const versionInfo = cheatData.serverVersion || cheatData.version || 'N/A';
-                cheatInfoDiv.innerHTML = `
+                // No update available, but show current version if available
+                const versionInfo = data.serverVersion || data.version || 'N/A';
+                infoDiv.innerHTML = `
                     <div style="color: #888888;">
                         <strong>Current Version: ${versionInfo}</strong><br>
                         No update file available
@@ -1373,44 +1356,10 @@ async function checkUpdateInfo() {
                 `;
             }
         } else {
-            cheatInfoDiv.innerHTML = '<div style="color: #888888;">No update file available</div>';
+            infoDiv.innerHTML = '<div style="color: #888888;">No update file available</div>';
         }
     } catch (error) {
-        cheatInfoDiv.innerHTML = '<div style="color: #ef4444;">Error checking update info</div>';
-    }
-    
-    // Check spoofer update
-    try {
-        const spooferResponse = await fetch(`${API.replace('/api', '')}/api/updates/check?program=spoofer`);
-        const spooferData = await spooferResponse.json();
-        
-        if (spooferData.success) {
-            if (spooferData.hasUpdate) {
-                const sizeMB = (spooferData.size / 1024 / 1024).toFixed(2);
-                const date = new Date(spooferData.modifiedAt).toLocaleString();
-                spooferInfoDiv.innerHTML = `
-                    <div style="color: #22c55e;">
-                        <strong>✅ Update Available</strong><br>
-                        <strong>Current Version: ${spooferData.serverVersion || spooferData.version || 'N/A'}</strong><br>
-                        File: ${spooferData.filename}<br>
-                        Size: ${sizeMB} MB<br>
-                        Uploaded: ${date}
-                    </div>
-                `;
-            } else {
-                const versionInfo = spooferData.serverVersion || spooferData.version || 'N/A';
-                spooferInfoDiv.innerHTML = `
-                    <div style="color: #888888;">
-                        <strong>Current Version: ${versionInfo}</strong><br>
-                        No update file available
-                    </div>
-                `;
-            }
-        } else {
-            spooferInfoDiv.innerHTML = '<div style="color: #888888;">No update file available</div>';
-        }
-    } catch (error) {
-        spooferInfoDiv.innerHTML = '<div style="color: #ef4444;">Error checking update info</div>';
+        infoDiv.innerHTML = '<div style="color: #ef4444;">Error checking update info</div>';
     }
 }
 
