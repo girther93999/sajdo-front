@@ -991,45 +991,52 @@ async function loadApplications() {
     if (!listDiv) return;
     
     try {
-        // TODO: Replace with actual API call when backend is ready
-        // For now, use mock data or localStorage
-        const savedApps = localStorage.getItem('artic_applications');
-        if (savedApps) {
-            applicationsCache = JSON.parse(savedApps);
-        } else {
-            applicationsCache = [];
-        }
-        
-        if (applicationsCache.length === 0) {
-            listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No applications yet. Create your first application to get started!</div>';
-            return;
-        }
-        
-        let html = '<div class="applications-grid">';
-        applicationsCache.forEach(app => {
-            html += `
-                <div class="application-card" onclick="viewApplication('${escapeHtml(app.id)}')">
-                    <div class="application-icon">
-                        <i class="fas fa-cube"></i>
-                    </div>
-                    <div class="application-info">
-                        <div class="application-name">${escapeHtml(app.name)}</div>
-                        <div class="application-meta">Created: ${new Date(app.createdAt).toLocaleDateString()}</div>
-                    </div>
-                    <div class="application-actions">
-                        <button class="btn btn-secondary" onclick="event.stopPropagation(); viewApplication('${escapeHtml(app.id)}')">
-                            <i class="fas fa-eye"></i>
-                            <span>View</span>
-                        </button>
-                        <button class="btn btn-danger" onclick="event.stopPropagation(); deleteApplication('${escapeHtml(app.id)}', '${escapeHtml(app.name)}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
+        const response = await fetch(`${API}/applications`, {
+            method: 'GET',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            }
         });
-        html += '</div>';
-        listDiv.innerHTML = html;
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            applicationsCache = data.applications || [];
+            
+            if (applicationsCache.length === 0) {
+                listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No applications yet. Create your first application to get started!</div>';
+                return;
+            }
+            
+            let html = '<div class="applications-grid">';
+            applicationsCache.forEach(app => {
+                html += `
+                    <div class="application-card" onclick="viewApplication('${escapeHtml(app.id)}')">
+                        <div class="application-icon">
+                            <i class="fas fa-cube"></i>
+                        </div>
+                        <div class="application-info">
+                            <div class="application-name">${escapeHtml(app.name)}</div>
+                            <div class="application-meta">Created: ${new Date(app.createdAt).toLocaleDateString()}</div>
+                        </div>
+                        <div class="application-actions">
+                            <button class="btn btn-secondary" onclick="event.stopPropagation(); viewApplication('${escapeHtml(app.id)}')">
+                                <i class="fas fa-eye"></i>
+                                <span>View</span>
+                            </button>
+                            <button class="btn btn-danger" onclick="event.stopPropagation(); deleteApplication('${escapeHtml(app.id)}', '${escapeHtml(app.name)}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            listDiv.innerHTML = html;
+        } else {
+            listDiv.innerHTML = '<div style="color: #ef4444;">Error loading applications: ' + (data.message || 'Unknown error') + '</div>';
+        }
     } catch (error) {
         console.error('Error loading applications:', error);
         listDiv.innerHTML = '<div style="color: #ef4444;">Error loading applications</div>';
@@ -1063,79 +1070,108 @@ async function createApplication() {
     statusDiv.innerHTML = '<div style="color: #888888;">Creating application...</div>';
     
     try {
-        // TODO: Replace with actual API call when backend is ready
-        // For now, create locally
-        const newApp = {
-            id: 'app_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-            name: name,
-            accountId: 'acc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-            apiToken: 'token_' + Date.now() + '_' + Math.random().toString(36).substr(2, 16),
-            createdAt: new Date().toISOString()
-        };
+        const response = await fetch(`${API}/applications`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                token: currentToken,
+                name: name
+            })
+        });
         
-        applicationsCache.push(newApp);
-        localStorage.setItem('artic_applications', JSON.stringify(applicationsCache));
+        const data = await response.json();
         
-        statusDiv.innerHTML = '<div style="color: #22c55e;">✅ Application created successfully!</div>';
-        setTimeout(() => {
-            closeCreateApplicationModal();
-            loadApplications();
-        }, 1000);
+        if (data.success) {
+            statusDiv.innerHTML = '<div style="color: #22c55e;">✅ Application created successfully!</div>';
+            setTimeout(() => {
+                closeCreateApplicationModal();
+                loadApplications();
+            }, 1000);
+        } else {
+            statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Error: ' + (data.message || 'Failed to create application') + '</div>';
+        }
     } catch (error) {
+        console.error('Error creating application:', error);
         statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Error creating application</div>';
     }
 }
 
-function viewApplication(appId) {
-    const app = applicationsCache.find(a => a.id === appId);
-    if (!app) {
-        alert('Application not found');
-        return;
+async function viewApplication(appId) {
+    try {
+        const response = await fetch(`${API}/applications/${appId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.application) {
+            const app = data.application;
+            currentApplication = app;
+            
+            // Update UI
+            document.getElementById('app-detail-name').textContent = app.name;
+            document.getElementById('app-detail-subtitle').textContent = `Manage keys for ${app.name}`;
+            document.getElementById('app-account-id').textContent = app.accountId;
+            document.getElementById('app-api-token').textContent = app.apiToken;
+            
+            // Hide all tabs and show application detail
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+                tab.classList.remove('active');
+            });
+            
+            const detailTab = document.getElementById('application-detail-tab');
+            if (detailTab) {
+                detailTab.style.display = 'block';
+                detailTab.classList.add('active');
+            }
+            
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+        } else {
+            alert('Application not found');
+        }
+    } catch (error) {
+        console.error('Error loading application:', error);
+        alert('Error loading application');
     }
-    
-    currentApplication = app;
-    
-    // Update UI
-    document.getElementById('app-detail-name').textContent = app.name;
-    document.getElementById('app-detail-subtitle').textContent = `Manage keys for ${app.name}`;
-    document.getElementById('app-account-id').textContent = app.accountId;
-    document.getElementById('app-api-token').textContent = app.apiToken;
-    
-    // Hide all tabs and show application detail
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.style.display = 'none';
-        tab.classList.remove('active');
-    });
-    
-    const detailTab = document.getElementById('application-detail-tab');
-    if (detailTab) {
-        detailTab.style.display = 'block';
-        detailTab.classList.add('active');
-    }
-    
-    // Update nav
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
 }
 
 async function deleteApplication(appId, appName) {
-    if (!confirm(`Delete application "${appName}"?\n\nThis will permanently delete the application and all associated data.`)) {
+    if (!confirm(`Delete application "${appName}"?\n\nThis will permanently delete the application and all associated keys.`)) {
         return;
     }
     
     try {
-        // TODO: Replace with actual API call when backend is ready
-        applicationsCache = applicationsCache.filter(a => a.id !== appId);
-        localStorage.setItem('artic_applications', JSON.stringify(applicationsCache));
+        const response = await fetch(`${API}/applications/${appId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            }
+        });
         
-        if (currentApplication && currentApplication.id === appId) {
-            showTab('applications');
-            currentApplication = null;
+        const data = await response.json();
+        
+        if (data.success) {
+            if (currentApplication && currentApplication.id === appId) {
+                showTab('applications');
+                currentApplication = null;
+            }
+            loadApplications();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to delete application'));
         }
-        
-        loadApplications();
     } catch (error) {
+        console.error('Error deleting application:', error);
         alert('Error deleting application');
     }
 }
@@ -1166,8 +1202,6 @@ async function generateAppKey() {
     }
     
     try {
-        // TODO: Replace with actual API call when backend is ready
-        // For now, generate locally (this will need backend support for real keys)
         const response = await fetch(`${API}/keys/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1176,7 +1210,7 @@ async function generateAppKey() {
                 format, 
                 duration, 
                 amount,
-                applicationId: currentApplication.id // Pass application ID
+                applicationId: currentApplication.id
             })
         });
         
