@@ -2517,6 +2517,11 @@ function checkAdminAccess() {
     const adminUser = ADMIN_CREDS.u;
     if (currentUser && currentUser.username === adminUser) {
         currentUser.isAdmin = true;
+        // Update header title
+        const navTitle = document.getElementById('nav-title');
+        if (navTitle) {
+            navTitle.textContent = 'Admin Panel';
+        }
         // Hide user nav items, show admin nav items
         document.querySelectorAll('.user-nav').forEach(el => el.style.display = 'none');
         // Unhide admin nav items
@@ -2527,6 +2532,10 @@ function checkAdminAccess() {
         showTab('admin-users');
     } else {
         // Regular user - hide admin nav items
+        const navTitle = document.getElementById('nav-title');
+        if (navTitle) {
+            navTitle.textContent = 'Dashboard';
+        }
         document.querySelectorAll('.admin-only').forEach(el => {
             el.style.display = 'none';
         });

@@ -2375,3 +2375,436 @@ body.light-theme .credential-value code {
     border: 1px solid #e5e5e5;
     color: #1a1a1a;
 }
+
+/* Status badges in light mode */
+body.light-theme .status {
+    border-color: currentColor;
+}
+
+body.light-theme .status.status-active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+    border-color: #16a34a;
+}
+
+body.light-theme .status.status-expired {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border-color: #dc2626;
+}
+
+body.light-theme .status.status-used {
+    background: rgba(234, 179, 8, 0.1);
+    color: #ca8a04;
+    border-color: #ca8a04;
+}
+
+/* Table actions in light mode */
+body.light-theme .table-action-btn {
+    border-color: #e5e5e5;
+    color: #666666;
+}
+
+body.light-theme .table-action-btn:hover:not(:disabled) {
+    background: #f5f5f5;
+    border-color: #d0d0d0;
+    color: #1a1a1a;
+}
+
+body.light-theme .table-action-btn-danger {
+    color: #dc2626;
+    border-color: #e5e5e5;
+}
+
+body.light-theme .table-action-btn-danger:hover:not(:disabled) {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+}
+
+/* Badges in light mode */
+body.light-theme .badge-success {
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+    border-color: #16a34a;
+}
+
+body.light-theme .badge-warning {
+    background: rgba(234, 179, 8, 0.1);
+    color: #ca8a04;
+    border-color: #ca8a04;
+}
+
+body.light-theme .badge-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border-color: #dc2626;
+}
+
+body.light-theme .badge-info {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    border-color: #2563eb;
+}
+
+/* HWID tooltip in light mode */
+body.light-theme .hwid-indicator {
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+    color: #666666;
+}
+
+body.light-theme .hwid-container:hover .hwid-indicator {
+    color: #1a1a1a;
+    border-color: #d0d0d0;
+    background: #ffffff;
+}
+
+body.light-theme .hwid-tooltip {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+}
+
+body.light-theme .hwid-tooltip code {
+    color: #1a1a1a;
+}
+
+/* Additional Light Theme Styles */
+body.light-theme .theme-toggle {
+    border-color: #e5e5e5;
+    color: #666666;
+}
+
+body.light-theme .theme-toggle:hover {
+    background: #f5f5f5;
+    border-color: #d0d0d0;
+    color: #1a1a1a;
+}
+
+body.light-theme .btn-signout {
+    background: #ffffff;
+    color: #1a1a1a;
+    border-color: #e5e5e5;
+}
+
+body.light-theme .btn-signout:hover {
+    background: #f5f5f5;
+    border-color: #d0d0d0;
+}
+
+body.light-theme .sidebar-header {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+body.light-theme .key-list-header h2 {
+    color: #1a1a1a;
+}
+
+body.light-theme .search-icon {
+    color: #666666;
+}
+
+body.light-theme .btn-reset-hwid {
+    background: #eab308;
+    border-color: #eab308;
+    color: #000000;
+}
+
+body.light-theme .btn-reset-hwid:hover:not(:disabled) {
+    background: #ca8a04;
+    border-color: #ca8a04;
+}
+
+body.light-theme .btn-delete-key {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+}
+
+body.light-theme .btn-delete-key:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+}
+
+body.light-theme .btn-view-details {
+    border-color: #e5e5e5;
+    color: #666666;
+}
+
+body.light-theme .btn-view-details:hover {
+    background: #f5f5f5;
+    border-color: #d0d0d0;
+    color: #1a1a1a;
+}
+
+body.light-theme .btn-icon {
+    border-color: #e5e5e5;
+    color: #666666;
+}
+
+body.light-theme .btn-icon:hover {
+    background: #f5f5f5;
+    border-color: #d0d0d0;
+    color: #1a1a1a;
+}
+
+body.light-theme .btn-icon-small {
+    border-color: #e5e5e5;
+    color: #666666;
+}
+
+body.light-theme .btn-icon-small:hover {
+    background: #f5f5f5;
+    border-color: #d0d0d0;
+    color: #1a1a1a;
+}
+
+body.light-theme .custom-checkbox .checkmark {
+    background: #ffffff;
+    border: 2px solid #e5e5e5;
+}
+
+body.light-theme .custom-checkbox:hover .checkmark {
+    border-color: #d0d0d0;
+    background: #f5f5f5;
+}
+
+body.light-theme .custom-checkbox input:checked ~ .checkmark {
+    background: #1a1a1a;
+    border-color: #1a1a1a;
+}
+
+body.light-theme .custom-checkbox input:checked ~ .checkmark:after {
+    border-color: #ffffff;
+}
+
+body.light-theme .hwid-display {
+    color: #666666;
+}
+
+body.light-theme .stat-icon-wrapper {
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+    color: #666666;
+}
+
+body.light-theme .action-card {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+}
+
+body.light-theme .action-card:hover {
+    border-color: #d0d0d0;
+    background: #f5f5f5;
+}
+
+body.light-theme .action-icon {
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+    color: #666666;
+}
+
+body.light-theme .action-title {
+    color: #1a1a1a;
+}
+
+body.light-theme .action-desc {
+    color: #666666;
+}
+
+body.light-theme .action-arrow {
+    color: #999999;
+}
+
+body.light-theme .result-box {
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+}
+
+body.light-theme .result-key code {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    color: #1a1a1a;
+}
+
+body.light-theme .result-info {
+    color: #666666;
+}
+
+body.light-theme .integration-guide {
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+}
+
+body.light-theme .integration-guide h3 {
+    color: #1a1a1a;
+}
+
+body.light-theme .integration-guide p {
+    color: #666666;
+}
+
+body.light-theme .code-block {
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+}
+
+body.light-theme .code-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e5e5;
+    color: #666666;
+}
+
+body.light-theme .btn-code-copy {
+    border-color: #e5e5e5;
+    color: #666666;
+}
+
+body.light-theme .btn-code-copy:hover {
+    background: #f5f5f5;
+    color: #1a1a1a;
+}
+
+body.light-theme .integration-guide code {
+    color: #1a1a1a;
+}
+
+body.light-theme .info-box {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid #3b82f6;
+    color: #666666;
+}
+
+body.light-theme .info-box strong {
+    color: #1a1a1a;
+}
+
+body.light-theme .file-card {
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+}
+
+body.light-theme .file-card:hover {
+    border-color: #d0d0d0;
+}
+
+body.light-theme .file-icon {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    color: #666666;
+}
+
+body.light-theme .file-name {
+    color: #1a1a1a;
+}
+
+body.light-theme .file-desc {
+    color: #666666;
+}
+
+body.light-theme .table-actions-bar {
+    border-color: #e5e5e5;
+}
+
+body.light-theme #keys-selection-status {
+    color: #666666;
+}
+
+body.light-theme .loading {
+    color: #666666;
+}
+
+body.light-theme .modal {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+body.light-theme .modal-close {
+    color: #666666;
+}
+
+body.light-theme .modal-close:hover {
+    background: #f5f5f5;
+    color: #1a1a1a;
+}
+
+body.light-theme .modal-key-display {
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+}
+
+body.light-theme .modal-key-display code {
+    color: #1a1a1a;
+}
+
+body.light-theme .form-hint {
+    color: #999999;
+}
+
+body.light-theme .section-title {
+    color: #1a1a1a;
+}
+
+body.light-theme .settings-section h3 {
+    color: #1a1a1a;
+}
+
+body.light-theme .settings-section p {
+    color: #666666;
+}
+
+body.light-theme .divider {
+    background: #e5e5e5;
+}
+
+body.light-theme .admin-table thead {
+    background: #f5f5f5;
+    border-bottom: 2px solid #e5e5e5;
+}
+
+body.light-theme .admin-table th {
+    color: #666666;
+}
+
+body.light-theme .admin-table td {
+    color: #1a1a1a;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+body.light-theme .admin-table tbody tr:hover {
+    background: #f5f5f5;
+}
+
+body.light-theme .user-details-section {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+body.light-theme .user-details-section h4 {
+    color: #1a1a1a;
+}
+
+body.light-theme .user-details-section p {
+    color: #666666;
+}
+
+body.light-theme .user-details-section code {
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+    color: #1a1a1a;
+}
+
+body.light-theme .app-context-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+body.light-theme .app-context-info {
+    color: #666666;
+}
+
+body.light-theme .app-context-info i {
+    color: #666666;
+}
+
+body.light-theme .app-context-info span {
+    color: #1a1a1a;
+}
