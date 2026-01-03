@@ -5,6 +5,8 @@ let currentToken = '';
 let currentUser = null;
 let keysCache = [];
 let selectedKeys = new Set();
+let applicationsCache = [];
+let currentApplication = null;
 
 // Security: Clear any keys from localStorage
 function clearLocalKeys() {
@@ -737,6 +739,14 @@ function showTab(tabName) {
     if (tabName === 'generate') {
         loadKeyPreferences();
     }
+    
+    // Hide application detail view if showing
+    const appDetailTab = document.getElementById('application-detail-tab');
+    if (appDetailTab) {
+        appDetailTab.style.display = 'none';
+        appDetailTab.classList.remove('active');
+    }
+    
     // Hide all tabs and reset display
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
@@ -766,7 +776,9 @@ function showTab(tabName) {
     } else if (tabName === 'generate') {
         loadKeyPreferences();
     } else if (tabName === 'applications') {
-        // Applications tab shows integration info - credentials are already loaded in checkAuth
+        loadApplications();
+    } else if (tabName === 'integration') {
+        // Integration tab - credentials are already loaded in checkAuth
     } else if (currentUser && currentUser.isAdmin) {
         if (tabName === 'admin-users') {
         loadAdminUsers();
@@ -973,6 +985,233 @@ function closeKeyDetailsModal() {
     }
 }
 
+// Application Management Functions
+async function loadApplications() {
+    const listDiv = document.getElementById('applications-list');
+    if (!listDiv) return;
+    
+    try {
+        // TODO: Replace with actual API call when backend is ready
+        // For now, use mock data or localStorage
+        const savedApps = localStorage.getItem('artic_applications');
+        if (savedApps) {
+            applicationsCache = JSON.parse(savedApps);
+        } else {
+            applicationsCache = [];
+        }
+        
+        if (applicationsCache.length === 0) {
+            listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No applications yet. Create your first application to get started!</div>';
+            return;
+        }
+        
+        let html = '<div class="applications-grid">';
+        applicationsCache.forEach(app => {
+            html += `
+                <div class="application-card" onclick="viewApplication('${escapeHtml(app.id)}')">
+                    <div class="application-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <div class="application-info">
+                        <div class="application-name">${escapeHtml(app.name)}</div>
+                        <div class="application-meta">Created: ${new Date(app.createdAt).toLocaleDateString()}</div>
+                    </div>
+                    <div class="application-actions">
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); viewApplication('${escapeHtml(app.id)}')">
+                            <i class="fas fa-eye"></i>
+                            <span>View</span>
+                        </button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation(); deleteApplication('${escapeHtml(app.id)}', '${escapeHtml(app.name)}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        listDiv.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading applications:', error);
+        listDiv.innerHTML = '<div style="color: #ef4444;">Error loading applications</div>';
+    }
+}
+
+function showCreateApplicationModal() {
+    document.getElementById('createApplicationModal').style.display = 'flex';
+    document.getElementById('new-app-name').value = '';
+    document.getElementById('create-app-status').innerHTML = '';
+}
+
+function closeCreateApplicationModal() {
+    document.getElementById('createApplicationModal').style.display = 'none';
+}
+
+async function createApplication() {
+    const name = document.getElementById('new-app-name').value.trim();
+    const statusDiv = document.getElementById('create-app-status');
+    
+    if (!name) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">Please enter an application name</div>';
+        return;
+    }
+    
+    if (name.length < 2 || name.length > 50) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">Application name must be 2-50 characters</div>';
+        return;
+    }
+    
+    statusDiv.innerHTML = '<div style="color: #888888;">Creating application...</div>';
+    
+    try {
+        // TODO: Replace with actual API call when backend is ready
+        // For now, create locally
+        const newApp = {
+            id: 'app_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            name: name,
+            accountId: 'acc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            apiToken: 'token_' + Date.now() + '_' + Math.random().toString(36).substr(2, 16),
+            createdAt: new Date().toISOString()
+        };
+        
+        applicationsCache.push(newApp);
+        localStorage.setItem('artic_applications', JSON.stringify(applicationsCache));
+        
+        statusDiv.innerHTML = '<div style="color: #22c55e;">✅ Application created successfully!</div>';
+        setTimeout(() => {
+            closeCreateApplicationModal();
+            loadApplications();
+        }, 1000);
+    } catch (error) {
+        statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Error creating application</div>';
+    }
+}
+
+function viewApplication(appId) {
+    const app = applicationsCache.find(a => a.id === appId);
+    if (!app) {
+        alert('Application not found');
+        return;
+    }
+    
+    currentApplication = app;
+    
+    // Update UI
+    document.getElementById('app-detail-name').textContent = app.name;
+    document.getElementById('app-detail-subtitle').textContent = `Manage keys for ${app.name}`;
+    document.getElementById('app-account-id').textContent = app.accountId;
+    document.getElementById('app-api-token').textContent = app.apiToken;
+    
+    // Hide all tabs and show application detail
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none';
+        tab.classList.remove('active');
+    });
+    
+    const detailTab = document.getElementById('application-detail-tab');
+    if (detailTab) {
+        detailTab.style.display = 'block';
+        detailTab.classList.add('active');
+    }
+    
+    // Update nav
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+}
+
+async function deleteApplication(appId, appName) {
+    if (!confirm(`Delete application "${appName}"?\n\nThis will permanently delete the application and all associated data.`)) {
+        return;
+    }
+    
+    try {
+        // TODO: Replace with actual API call when backend is ready
+        applicationsCache = applicationsCache.filter(a => a.id !== appId);
+        localStorage.setItem('artic_applications', JSON.stringify(applicationsCache));
+        
+        if (currentApplication && currentApplication.id === appId) {
+            showTab('applications');
+            currentApplication = null;
+        }
+        
+        loadApplications();
+    } catch (error) {
+        alert('Error deleting application');
+    }
+}
+
+// Toggle amount input based on duration for app keys
+document.getElementById('app-duration')?.addEventListener('change', function() {
+    const amountGroup = document.getElementById('app-amount-group');
+    if (this.value === 'lifetime') {
+        amountGroup.style.display = 'none';
+    } else {
+        amountGroup.style.display = 'block';
+    }
+});
+
+async function generateAppKey() {
+    if (!currentApplication) {
+        alert('No application selected');
+        return;
+    }
+    
+    const format = document.getElementById('app-format').value;
+    const duration = document.getElementById('app-duration').value;
+    const amount = document.getElementById('app-amount').value;
+    
+    if (!format || !format.includes('*')) {
+        alert('Format must include at least one * for random characters');
+        return;
+    }
+    
+    try {
+        // TODO: Replace with actual API call when backend is ready
+        // For now, generate locally (this will need backend support for real keys)
+        const response = await fetch(`${API}/keys/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                token: currentToken, 
+                format, 
+                duration, 
+                amount,
+                applicationId: currentApplication.id // Pass application ID
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('app-generated-key').textContent = data.key;
+            document.getElementById('app-generated-result').style.display = 'block';
+            
+            let info = `Duration: ${duration === 'lifetime' ? 'Lifetime' : `${amount} ${duration}(s)`}`;
+            if (data.data.expiresAt) {
+                info += ` | Expires: ${new Date(data.data.expiresAt).toLocaleString()}`;
+            }
+            document.getElementById('app-key-info').textContent = info;
+            
+            // Reload keys if on keys tab
+            if (document.getElementById('keys-tab').classList.contains('active')) {
+                loadKeys();
+            }
+            loadStats();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Connection error. Make sure server is running.');
+    }
+}
+
+function copyAppKey() {
+    const key = document.getElementById('app-generated-key').textContent;
+    navigator.clipboard.writeText(key).then(() => {
+        alert('Key copied!');
+    });
+}
+
 // Close modal when clicking outside
 document.addEventListener('DOMContentLoaded', function() {
     const keyDetailsModal = document.getElementById('keyDetailsModal');
@@ -984,10 +1223,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    const createAppModal = document.getElementById('createApplicationModal');
+    if (createAppModal) {
+        createAppModal.addEventListener('click', function(e) {
+            if (e.target === createAppModal) {
+                closeCreateApplicationModal();
+            }
+        });
+    }
+    
     // Close on Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeKeyDetailsModal();
+            closeCreateApplicationModal();
         }
     });
 });

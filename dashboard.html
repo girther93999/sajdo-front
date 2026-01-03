@@ -46,6 +46,10 @@
                     <i class="fas fa-key"></i>
                     <span>Keys</span>
                 </button>
+                <button class="nav-item user-nav" onclick="showTab('integration')" data-tab="integration">
+                    <i class="fas fa-code"></i>
+                    <span>Integration</span>
+                </button>
                 <!-- Admin-only nav items -->
                 <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-users')" data-tab="admin-users">
                     <i class="fas fa-users"></i>
@@ -70,6 +74,127 @@
         <main class="main-content">
             <!-- Applications Tab -->
             <div id="applications-tab" class="tab-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Applications</h1>
+                        <p class="page-subtitle">Manage your applications and generate keys for each project</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showCreateApplicationModal()">
+                        <i class="fas fa-plus"></i>
+                        <span>Create Application</span>
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div id="applications-list" class="loading">Loading applications...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Application Detail View -->
+            <div id="application-detail-tab" class="tab-content" style="display: none;">
+                <div class="page-header">
+                    <div>
+                        <button class="btn btn-secondary" onclick="showTab('applications')" style="margin-right: 1rem;">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Back to Applications</span>
+                        </button>
+                        <div>
+                            <h1 id="app-detail-name">Application</h1>
+                            <p class="page-subtitle" id="app-detail-subtitle">Manage this application</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Application Credentials</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="credentials-list">
+                            <div class="credential-item">
+                                <div class="credential-label">
+                                    <i class="fas fa-id-card"></i>
+                                    <span>Account ID</span>
+                                </div>
+                                <div class="credential-value">
+                                    <code id="app-account-id"></code>
+                                    <button class="btn-icon" onclick="copyCredential('app-account-id')" title="Copy">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="credential-item">
+                                <div class="credential-label">
+                                    <i class="fas fa-lock"></i>
+                                    <span>API Token</span>
+                                </div>
+                                <div class="credential-value">
+                                    <code id="app-api-token"></code>
+                                    <button class="btn-icon" onclick="copyCredential('app-api-token')" title="Copy">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Generate Key for This Application</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-section">
+                            <label class="form-label">Key Format</label>
+                            <input type="text" id="app-format" placeholder="KEY-****" value="KEY-****" class="form-input">
+                            <span class="form-hint">Use * for random characters</span>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-section">
+                                <label class="form-label">Duration</label>
+                                <select id="app-duration" class="form-input">
+                                    <option value="second">Seconds</option>
+                                    <option value="minute">Minutes</option>
+                                    <option value="hour">Hours</option>
+                                    <option value="day" selected>Days</option>
+                                    <option value="month">Months</option>
+                                    <option value="lifetime">Lifetime</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-section" id="app-amount-group">
+                                <label class="form-label">Amount</label>
+                                <input type="number" id="app-amount" min="1" value="30" class="form-input">
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary btn-large" onclick="generateAppKey()">
+                            <i class="fas fa-key"></i>
+                            <span>Generate Key</span>
+                        </button>
+                        
+                        <div id="app-generated-result" class="result-box" style="display: none;">
+                            <div class="result-header">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Key Generated Successfully</span>
+                            </div>
+                            <div class="result-key">
+                                <code id="app-generated-key"></code>
+                                <button class="btn-icon" onclick="copyAppKey()" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="result-info" id="app-key-info"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Integration Tab -->
+            <div id="integration-tab" class="tab-content">
                 <div class="page-header">
                     <div>
                         <h1>Integration</h1>
@@ -824,6 +949,30 @@ if (auth.validateKey(userKey)) {
                     </div>
                     <div class="modal-body">
                         <div id="key-details-content" class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Application Modal -->
+            <div id="createApplicationModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Create New Application</h3>
+                        <button class="modal-close" onclick="closeCreateApplicationModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-section">
+                            <label class="form-label">Application Name</label>
+                            <input type="text" id="new-app-name" placeholder="Enter application name" class="form-input" maxlength="50">
+                            <span class="form-hint">Choose a name for your application (e.g., "My Game", "Project Alpha")</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="createApplication()">
+                            <i class="fas fa-plus"></i>
+                            <span>Create Application</span>
+                        </button>
+                        <div id="create-app-status" style="margin-top: 1rem;"></div>
                     </div>
                 </div>
             </div>
