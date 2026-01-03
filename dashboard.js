@@ -1156,17 +1156,17 @@ async function createApplication() {
         const data = await response.json();
         
         if (data.success) {
-            statusDiv.innerHTML = '<div style="color: #22c55e;">✅ Application created successfully!</div>';
+            statusDiv.innerHTML = '<div style="color: #22c55e; display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-check-circle"></i> Application created successfully!</div>';
             setTimeout(() => {
                 closeCreateApplicationModal();
                 loadApplications();
             }, 1000);
         } else {
-            statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Error: ' + (data.message || 'Failed to create application') + '</div>';
+            statusDiv.innerHTML = '<div style="color: #ef4444; display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-times-circle"></i> Error: ' + (data.message || 'Failed to create application') + '</div>';
         }
     } catch (error) {
         console.error('Error creating application:', error);
-        statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Error creating application</div>';
+        statusDiv.innerHTML = '<div style="color: #ef4444; display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-times-circle"></i> Error creating application</div>';
     }
 }
 
@@ -2603,6 +2603,8 @@ function toggleTheme() {
     if (icon) {
         icon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
     }
+    // Force a repaint to ensure styles are applied
+    document.body.offsetHeight;
 }
 
 // Load saved theme
