@@ -32,7 +32,7 @@
                     <div class="logged-in-username" id="sidebar-username">Loading...</div>
                 </div>
             </div>
-            <nav class="sidebar-nav">
+            <nav class="sidebar-nav" id="main-sidebar-nav">
                 <!-- Regular user nav items -->
                 <button class="nav-item user-nav" onclick="showTab('applications')" data-tab="applications">
                     <i class="fas fa-cog"></i>
@@ -50,6 +50,40 @@
                     <i class="fas fa-code"></i>
                     <span>Integration</span>
                 </button>
+                <!-- Admin-only nav items -->
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-users')" data-tab="admin-users">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </button>
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-resellers')" data-tab="admin-resellers">
+                    <i class="fas fa-handshake"></i>
+                    <span>Resellers</span>
+                </button>
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-invites')" data-tab="admin-invites">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Invites</span>
+                </button>
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-updates')" data-tab="admin-updates">
+                    <i class="fas fa-upload"></i>
+                    <span>Updates</span>
+                </button>
+            </nav>
+            
+            <!-- Application Sidebar Nav (shown when viewing application) -->
+            <nav class="sidebar-nav" id="app-sidebar-nav" style="display: none;">
+                <button class="nav-item app-nav active" onclick="showAppTab('keys')" data-tab="app-keys">
+                    <i class="fas fa-key"></i>
+                    <span>Keys</span>
+                </button>
+                <button class="nav-item app-nav" onclick="showAppTab('generate')" data-tab="app-generate">
+                    <i class="fas fa-plus"></i>
+                    <span>Key Gen</span>
+                </button>
+                <button class="nav-item app-nav" onclick="showAppTab('integration')" data-tab="app-integration">
+                    <i class="fas fa-code"></i>
+                    <span>Integration</span>
+                </button>
+            </nav>
                 <!-- Admin-only nav items -->
                 <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-users')" data-tab="admin-users">
                     <i class="fas fa-users"></i>
@@ -92,102 +126,250 @@
                 </div>
             </div>
 
-            <!-- Application Detail View -->
+            <!-- Application Detail View (Full Dashboard) -->
             <div id="application-detail-tab" class="tab-content" style="display: none;">
-                <div class="page-header">
-                    <div>
-                        <button class="btn btn-secondary" onclick="showTab('applications')" style="margin-right: 1rem;">
-                            <i class="fas fa-arrow-left"></i>
-                            <span>Back to Applications</span>
-                        </button>
+                <!-- Application Header -->
+                <div class="app-context-header">
+                    <button class="btn btn-secondary" onclick="exitApplicationView()">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back to Main Account</span>
+                    </button>
+                    <div class="app-context-info">
+                        <i class="fas fa-cube"></i>
+                        <span id="app-context-name">Application</span>
+                    </div>
+                </div>
+
+                <!-- Application Keys Tab -->
+                <div id="app-keys-tab" class="tab-content active">
+                    <div class="key-list-header">
+                        <h2>Key List</h2>
+                        <div class="search-container">
+                            <input type="text" id="app-key-search" class="search-input" placeholder="Search keys..." onkeyup="filterAppKeys()" onfocus="clearSearchPlaceholder()">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-actions-bar" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:12px;">
+                                <button class="btn btn-secondary" onclick="deleteSelectedAppKeys()">
+                                    <i class="fas fa-trash"></i>
+                                    <span>Delete Selected</span>
+                                </button>
+                                <button class="btn btn-secondary" onclick="deleteExpiredAppKeys()">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Delete Expired</span>
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteAllAppKeys()">
+                                    <i class="fas fa-ban"></i>
+                                    <span>Delete All</span>
+                                </button>
+                                <div id="app-keys-selection-status" style="align-self:center; color:#888; font-size:12px; margin-left:4px;"></div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="keys-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:36px; text-align:center;">
+                                                <label class="custom-checkbox">
+                                                    <input type="checkbox" id="app-keys-select-all" onclick="toggleSelectAllAppKeys(this.checked)">
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </th>
+                                            <th>Key</th>
+                                            <th>HWID</th>
+                                            <th>Expiry Date</th>
+                                            <th>Frozen</th>
+                                            <th>Created By</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="app-keys-table">
+                                        <tr><td colspan="7" class="loading">Loading keys...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application Generate Tab -->
+                <div id="app-generate-tab" class="tab-content">
+                    <div class="page-header">
                         <div>
-                            <h1 id="app-detail-name">Application</h1>
-                            <p class="page-subtitle" id="app-detail-subtitle">Manage this application</p>
+                            <h1>Generate Key</h1>
+                            <p class="page-subtitle">Create a new license key for this application</p>
                         </div>
                     </div>
-                </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Application Credentials</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="credentials-list">
-                            <div class="credential-item">
-                                <div class="credential-label">
-                                    <i class="fas fa-id-card"></i>
-                                    <span>Account ID</span>
-                                </div>
-                                <div class="credential-value">
-                                    <code id="app-account-id"></code>
-                                    <button class="btn-icon" onclick="copyCredential('app-account-id')" title="Copy">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="credential-item">
-                                <div class="credential-label">
-                                    <i class="fas fa-lock"></i>
-                                    <span>API Token</span>
-                                </div>
-                                <div class="credential-value">
-                                    <code id="app-api-token"></code>
-                                    <button class="btn-icon" onclick="copyCredential('app-api-token')" title="Copy">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Generate Key for This Application</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-section">
-                            <label class="form-label">Key Format</label>
-                            <input type="text" id="app-format" placeholder="KEY-****" value="KEY-****" class="form-input">
-                            <span class="form-hint">Use * for random characters</span>
-                        </div>
-                        
-                        <div class="form-row">
+                    <div class="card">
+                        <div class="card-body">
                             <div class="form-section">
-                                <label class="form-label">Duration</label>
-                                <select id="app-duration" class="form-input">
-                                    <option value="second">Seconds</option>
-                                    <option value="minute">Minutes</option>
-                                    <option value="hour">Hours</option>
-                                    <option value="day" selected>Days</option>
-                                    <option value="month">Months</option>
-                                    <option value="lifetime">Lifetime</option>
-                                </select>
+                                <label class="form-label">Key Format</label>
+                                <input type="text" id="app-format" placeholder="KEY-****" value="KEY-****" class="form-input">
+                                <span class="form-hint">Use * for random characters</span>
                             </div>
                             
-                            <div class="form-section" id="app-amount-group">
-                                <label class="form-label">Amount</label>
-                                <input type="number" id="app-amount" min="1" value="30" class="form-input">
+                            <div class="form-row">
+                                <div class="form-section">
+                                    <label class="form-label">Duration</label>
+                                    <select id="app-duration" class="form-input">
+                                        <option value="second">Seconds</option>
+                                        <option value="minute">Minutes</option>
+                                        <option value="hour">Hours</option>
+                                        <option value="day" selected>Days</option>
+                                        <option value="month">Months</option>
+                                        <option value="lifetime">Lifetime</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-section" id="app-amount-group">
+                                    <label class="form-label">Amount</label>
+                                    <input type="number" id="app-amount" min="1" value="30" class="form-input">
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-primary btn-large" onclick="generateAppKey()">
+                                <i class="fas fa-key"></i>
+                                <span>Generate Key</span>
+                            </button>
+                            
+                            <div id="app-generated-result" class="result-box" style="display: none;">
+                                <div class="result-header">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Key Generated Successfully</span>
+                                </div>
+                                <div class="result-key">
+                                    <code id="app-generated-key"></code>
+                                    <button class="btn-icon" onclick="copyAppKey()" title="Copy">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="result-info" id="app-key-info"></div>
                             </div>
                         </div>
-                        
-                        <button class="btn btn-primary btn-large" onclick="generateAppKey()">
-                            <i class="fas fa-key"></i>
-                            <span>Generate Key</span>
-                        </button>
-                        
-                        <div id="app-generated-result" class="result-box" style="display: none;">
-                            <div class="result-header">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Key Generated Successfully</span>
+                    </div>
+                </div>
+
+                <!-- Application Integration Tab -->
+                <div id="app-integration-tab" class="tab-content">
+                    <div class="page-header">
+                        <div>
+                            <h1>Integration</h1>
+                            <p class="page-subtitle">Use these credentials to integrate with your application</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="credentials-list">
+                                <div class="credential-item">
+                                    <div class="credential-label">
+                                        <i class="fas fa-id-card"></i>
+                                        <span>Account ID</span>
+                                    </div>
+                                    <div class="credential-value">
+                                        <code id="app-account-id"></code>
+                                        <button class="btn-icon" onclick="copyCredential('app-account-id')" title="Copy">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="credential-item">
+                                    <div class="credential-label">
+                                        <i class="fas fa-lock"></i>
+                                        <span>API Token</span>
+                                    </div>
+                                    <div class="credential-value">
+                                        <code id="app-api-token"></code>
+                                        <button class="btn-icon" onclick="copyCredential('app-api-token')" title="Copy">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="result-key">
-                                <code id="app-generated-key"></code>
-                                <button class="btn-icon" onclick="copyAppKey()" title="Copy">
-                                    <i class="fas fa-copy"></i>
-                                </button>
+                            
+                            <div class="integration-guide">
+                                <h3>
+                                    <i class="fas fa-book"></i>
+                                    <span>Integration Guide</span>
+                                </h3>
+                                <p>Add these lines to your C++ code:</p>
+                                <div class="code-block">
+                                    <div class="code-header">
+                                        <span>C++ Example</span>
+                                        <button class="btn-code-copy" onclick="copyAppCode('app-integration-code')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    <pre id="app-integration-code"><code>// Your Application Credentials
+std::string ACCOUNT_ID = "<span id="app-code-account-id">YOUR_ACCOUNT_ID</span>";
+std::string API_TOKEN = "<span id="app-code-api-token">YOUR_API_TOKEN</span>";
+
+// Set credentials (REQUIRED - keys only work with correct account)
+AuthClient auth("https://answub-back.onrender.com");
+auth.setCredentials(ACCOUNT_ID, API_TOKEN);
+
+// Now validate keys (only YOUR keys will work!)
+if (auth.validateKey(userKey)) {
+    std::cout &lt;&lt; "Success!\n";
+}</code></pre>
+                                </div>
+                                <div class="info-box">
+                                    <i class="fas fa-info-circle"></i>
+                                    <div>
+                                        <strong>Important:</strong> Keys will ONLY work with the account that created them. Keys lock to the first computer (HWID) that uses them.
+                                    </div>
+                                </div>
                             </div>
-                            <div class="result-info" id="app-key-info"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Download Files</h2>
+                        </div>
+                        <div class="card-body">
+                            <p class="form-hint" style="margin-bottom: 1.5rem;">Download the required files for integration:</p>
+                            <div class="files-grid">
+                                <div class="file-card">
+                                    <div class="file-icon">
+                                        <i class="fas fa-file-code"></i>
+                                    </div>
+                                    <div class="file-info">
+                                        <div class="file-name">auth_client.h</div>
+                                        <div class="file-desc">Header file with AuthClient class</div>
+                                    </div>
+                                    <div class="file-actions">
+                                        <button class="btn btn-secondary" onclick="showFile('auth_client.h')" title="View Code">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-primary" onclick="downloadFile('auth_client.h')">
+                                            <i class="fas fa-download"></i>
+                                            <span>Download</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="file-card">
+                                    <div class="file-icon">
+                                        <i class="fas fa-file-code"></i>
+                                    </div>
+                                    <div class="file-info">
+                                        <div class="file-name">auth_client.cpp</div>
+                                        <div class="file-desc">Implementation file</div>
+                                    </div>
+                                    <div class="file-actions">
+                                        <button class="btn btn-secondary" onclick="showFile('auth_client.cpp')" title="View Code">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-primary" onclick="downloadFile('auth_client.cpp')">
+                                            <i class="fas fa-download"></i>
+                                            <span>Download</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -486,10 +486,18 @@ async function resetHWID(key, buttonElement) {
                     buttonElement.classList.remove('action-success');
                     buttonElement.innerHTML = '<i class="fas fa-unlock-alt"></i><span>Reset HWID</span>';
                     buttonElement.disabled = false;
-                    loadKeys();
+                    if (currentApplication) {
+                        loadAppKeys();
+                    } else {
+                        loadKeys();
+                    }
                 }, 1500);
             } else {
-                loadKeys();
+                if (currentApplication) {
+                    loadAppKeys();
+                } else {
+                    loadKeys();
+                }
             }
         } else {
             // Error animation
@@ -556,17 +564,29 @@ async function deleteKey(key, buttonElement) {
                         row.style.border = 'none';
                         
                         setTimeout(() => {
-                            loadKeys();
+                            if (currentApplication) {
+                                loadAppKeys();
+                            } else {
+                                loadKeys();
+                            }
                             loadStats();
                         }, 400);
                     }, 400);
                 }, 100);
             } else {
-                loadKeys();
+                if (currentApplication) {
+                    loadAppKeys();
+                } else {
+                    loadKeys();
+                }
                 loadStats();
             }
         } else {
-            loadKeys();
+            if (currentApplication) {
+                loadAppKeys();
+            } else {
+                loadKeys();
+            }
             loadStats();
         }
     } else {
@@ -1114,28 +1134,36 @@ async function viewApplication(appId) {
             const app = data.application;
             currentApplication = app;
             
-            // Update UI
-            document.getElementById('app-detail-name').textContent = app.name;
-            document.getElementById('app-detail-subtitle').textContent = `Manage keys for ${app.name}`;
+            // Update application context header
+            document.getElementById('app-context-name').textContent = app.name;
+            
+            // Update credentials
             document.getElementById('app-account-id').textContent = app.accountId;
             document.getElementById('app-api-token').textContent = app.apiToken;
+            document.getElementById('app-code-account-id').textContent = app.accountId;
+            document.getElementById('app-code-api-token').textContent = app.apiToken;
             
-            // Hide all tabs and show application detail
+            // Hide main sidebar, show app sidebar
+            document.getElementById('main-sidebar-nav').style.display = 'none';
+            document.getElementById('app-sidebar-nav').style.display = 'flex';
+            
+            // Hide all main tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.style.display = 'none';
-                tab.classList.remove('active');
+                if (!tab.id.startsWith('app-') && tab.id !== 'application-detail-tab') {
+                    tab.style.display = 'none';
+                    tab.classList.remove('active');
+                }
             });
             
+            // Show application detail view
             const detailTab = document.getElementById('application-detail-tab');
             if (detailTab) {
                 detailTab.style.display = 'block';
                 detailTab.classList.add('active');
             }
             
-            // Update nav
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
+            // Show keys tab by default
+            showAppTab('keys');
         } else {
             alert('Application not found');
         }
@@ -1143,6 +1171,296 @@ async function viewApplication(appId) {
         console.error('Error loading application:', error);
         alert('Error loading application');
     }
+}
+
+function exitApplicationView() {
+    currentApplication = null;
+    
+    // Hide app sidebar, show main sidebar
+    document.getElementById('main-sidebar-nav').style.display = 'flex';
+    document.getElementById('app-sidebar-nav').style.display = 'none';
+    
+    // Hide application detail view
+    const detailTab = document.getElementById('application-detail-tab');
+    if (detailTab) {
+        detailTab.style.display = 'none';
+        detailTab.classList.remove('active');
+    }
+    
+    // Show applications tab
+    showTab('applications');
+}
+
+function showAppTab(tabName) {
+    // Hide all app tabs
+    document.querySelectorAll('#application-detail-tab .tab-content').forEach(tab => {
+        tab.classList.remove('active');
+        tab.style.display = 'none';
+    });
+    
+    // Show selected tab
+    const tabElement = document.getElementById('app-' + tabName + '-tab');
+    if (tabElement) {
+        tabElement.classList.add('active');
+        tabElement.style.display = 'block';
+    }
+    
+    // Update nav items
+    document.querySelectorAll('#app-sidebar-nav .nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('data-tab') === 'app-' + tabName) {
+            item.classList.add('active');
+        }
+    });
+    
+    // Load data if needed
+    if (tabName === 'keys') {
+        loadAppKeys();
+    } else if (tabName === 'generate') {
+        loadKeyPreferences();
+    }
+}
+
+// Load keys for current application
+async function loadAppKeys() {
+    if (!currentApplication) return;
+    
+    try {
+        const response = await fetch(`${API}/keys/list`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: currentToken })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Filter keys for this application
+            const appKeys = (data.keys || []).filter(k => k.applicationId === currentApplication.id);
+            keysCache = appKeys;
+            selectedKeys.clear();
+            const tbody = document.getElementById('app-keys-table');
+            tbody.innerHTML = '';
+            
+            if (appKeys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">No keys generated yet for this application</td></tr>';
+                updateAppSelectionStatus();
+                updateAppSelectAllCheckbox();
+                return;
+            }
+            
+            const sortedKeys = appKeys.sort((a, b) => 
+                new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            
+            sortedKeys.forEach(key => {
+                const tr = document.createElement('tr');
+                
+                let status = 'Active';
+                let statusClass = 'status-active';
+                
+                if (key.expiresAt) {
+                    const expiry = new Date(key.expiresAt);
+                    if (expiry < new Date()) {
+                        status = 'Expired';
+                        statusClass = 'status-expired';
+                    }
+                }
+                
+                if (key.usedBy) {
+                    status = 'Used';
+                    statusClass = 'status-used';
+                }
+                
+                // Calculate expiry in hours
+                let expiryText = 'Never';
+                if (key.expiresAt) {
+                    const expiry = new Date(key.expiresAt);
+                    const now = new Date();
+                    const diffMs = expiry - now;
+                    if (diffMs > 0) {
+                        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                        expiryText = `${diffHours}h`;
+                    } else {
+                        expiryText = 'Expired';
+                    }
+                } else if (key.amount && key.duration) {
+                    const durationMap = { 'day': 24, 'week': 168, 'month': 720, 'hour': 1, 'minute': 1/60, 'second': 1/3600 };
+                    const hours = (key.amount || 0) * (durationMap[key.duration] || 0);
+                    if (hours > 0) {
+                        expiryText = `${Math.floor(hours)}h`;
+                    }
+                }
+                
+                let hwidDisplay = key.hwid || 'None';
+                const frozen = key.frozen ? 'Yes' : 'No';
+                const createdBy = key.createdBy || currentUser?.username || 'N/A';
+                
+                tr.innerHTML = `
+                    <td style="text-align:center;">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" class="app-key-row-checkbox" data-key="${key.key}" onclick="toggleAppKeySelection(this.dataset.key, this.checked)">
+                            <span class="checkmark"></span>
+                        </label>
+                    </td>
+                    <td><code>${escapeHtml(key.key)}</code></td>
+                    <td>${hwidDisplay === 'None' ? 'None' : `<span class="hwid-display" title="${escapeHtml(hwidDisplay)}">${escapeHtml(hwidDisplay.substring(0, 20))}${hwidDisplay.length > 20 ? '...' : ''}</span>`}</td>
+                    <td>${expiryText}</td>
+                    <td>${frozen}</td>
+                    <td>${escapeHtml(createdBy)}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn-view-details" onclick="showKeyDetails('${escapeHtml(key.key)}')" title="View Details">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Details</span>
+                            </button>
+                            <button class="btn-reset-hwid" onclick="resetHWID('${escapeHtml(key.key)}', this)" ${!key.hwid || hwidDisplay === 'None' ? 'disabled' : ''} title="Reset HWID">
+                                <i class="fas fa-unlock-alt"></i>
+                                <span>Reset HWID</span>
+                            </button>
+                            <button class="btn-delete-key" onclick="deleteKey('${escapeHtml(key.key)}', this)" title="Delete">
+                                <i class="fas fa-trash"></i>
+                                <span>Delete</span>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+
+            updateAppSelectionStatus();
+            updateAppSelectAllCheckbox();
+        }
+    } catch (error) {
+        console.error('Error loading app keys:', error);
+    }
+}
+
+function filterAppKeys() {
+    const searchInput = document.getElementById('app-key-search');
+    if (!searchInput) return;
+    
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#app-keys-table tbody tr');
+    
+    if (rows.length === 1 && rows[0].querySelector('.loading')) {
+        return;
+    }
+    
+    rows.forEach(row => {
+        if (row.querySelector('.loading')) {
+            return;
+        }
+        
+        const keyText = row.querySelector('td:nth-child(2) code')?.textContent.toLowerCase() || '';
+        const hwidText = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
+        const expiryText = row.querySelector('td:nth-child(4)')?.textContent.toLowerCase() || '';
+        const frozenText = row.querySelector('td:nth-child(5)')?.textContent.toLowerCase() || '';
+        const createdByText = row.querySelector('td:nth-child(6)')?.textContent.toLowerCase() || '';
+        
+        if (searchTerm === '' || 
+            keyText.includes(searchTerm) || 
+            hwidText.includes(searchTerm) || 
+            expiryText.includes(searchTerm) ||
+            frozenText.includes(searchTerm) ||
+            createdByText.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function toggleAppKeySelection(key, checked) {
+    if (checked) selectedKeys.add(key); else selectedKeys.delete(key);
+    updateAppSelectionStatus();
+    updateAppSelectAllCheckbox();
+}
+
+function toggleSelectAllAppKeys(checked) {
+    selectedKeys.clear();
+    if (checked) {
+        keysCache.forEach(k => selectedKeys.add(k.key));
+    }
+    document.querySelectorAll('.app-key-row-checkbox').forEach(cb => {
+        cb.checked = checked;
+    });
+    updateAppSelectionStatus();
+    updateAppSelectAllCheckbox();
+}
+
+function updateAppSelectionStatus() {
+    const statusEl = document.getElementById('app-keys-selection-status');
+    if (!statusEl) return;
+    const total = keysCache.length;
+    const selected = selectedKeys.size;
+    statusEl.textContent = total ? `${selected}/${total} selected` : 'No keys';
+}
+
+function updateAppSelectAllCheckbox() {
+    const allBox = document.getElementById('app-keys-select-all');
+    if (!allBox) return;
+    const total = keysCache.length;
+    const selected = selectedKeys.size;
+    allBox.checked = total > 0 && selected === total;
+    allBox.indeterminate = selected > 0 && selected < total;
+}
+
+async function deleteSelectedAppKeys() {
+    if (selectedKeys.size === 0) {
+        alert('Select at least one key to delete.');
+        return;
+    }
+    if (!confirm(`Delete ${selectedKeys.size} selected key(s)?`)) return;
+    await bulkDeleteKeys(Array.from(selectedKeys));
+    loadAppKeys();
+}
+
+async function deleteExpiredAppKeys() {
+    const now = new Date();
+    const expired = keysCache.filter(k => k.expiresAt && new Date(k.expiresAt) < now).map(k => k.key);
+    if (expired.length === 0) {
+        alert('No expired keys to delete.');
+        return;
+    }
+    if (!confirm(`Delete ${expired.length} expired key(s)?`)) return;
+    await bulkDeleteKeys(expired);
+    loadAppKeys();
+}
+
+async function deleteAllAppKeys() {
+    if (keysCache.length === 0) {
+        alert('No keys to delete.');
+        return;
+    }
+    if (!confirm(`Delete ALL ${keysCache.length} keys? This cannot be undone.`)) return;
+    await bulkDeleteKeys(keysCache.map(k => k.key));
+    loadAppKeys();
+}
+
+function copyAppCode(elementId) {
+    const codeElement = document.getElementById(elementId);
+    const text = codeElement.textContent || codeElement.innerText;
+    
+    let finalText = text;
+    if (currentApplication) {
+        finalText = finalText.replace(/YOUR_ACCOUNT_ID/g, currentApplication.accountId);
+        finalText = finalText.replace(/YOUR_API_TOKEN/g, currentApplication.apiToken);
+    }
+    
+    navigator.clipboard.writeText(finalText).then(() => {
+        const notification = document.createElement('div');
+        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #0d1117; border: 1px solid #3fb950; color: #3fb950; padding: 16px 24px; border-radius: 8px; z-index: 10001; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
+        notification.innerHTML = '<i class="fas fa-check-circle"></i> Code copied to clipboard!';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }).catch(() => {
+        alert('Failed to copy. Please select and copy manually.');
+    });
 }
 
 async function deleteApplication(appId, appName) {
@@ -1226,9 +1544,13 @@ async function generateAppKey() {
             }
             document.getElementById('app-key-info').textContent = info;
             
-            // Reload keys if on keys tab
-            if (document.getElementById('keys-tab').classList.contains('active')) {
-                loadKeys();
+            // Reload keys
+            if (currentApplication) {
+                loadAppKeys();
+            } else {
+                if (document.getElementById('keys-tab').classList.contains('active')) {
+                    loadKeys();
+                }
             }
             loadStats();
         } else {

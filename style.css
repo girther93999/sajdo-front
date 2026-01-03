@@ -964,6 +964,34 @@ table {
     align-items: center;
 }
 
+/* Application Context Header */
+.app-context-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    background: #111111;
+    border-bottom: 1px solid #1a1a1a;
+    margin-bottom: 2rem;
+}
+
+.app-context-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #888888;
+    font-size: 0.875rem;
+}
+
+.app-context-info i {
+    color: #888888;
+}
+
+.app-context-info span {
+    font-weight: 500;
+    color: #ffffff;
+}
+
 /* Action Button Animations */
 .btn-reset-hwid,
 .btn-delete-key {
