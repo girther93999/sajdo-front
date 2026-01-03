@@ -1086,7 +1086,7 @@ async function loadApplications() {
                 html += `
                     <div class="application-card" onclick="viewApplication('${escapeHtml(app.id)}')">
                         <div class="application-icon">
-                            <i class="fas fa-cube"></i>
+                            <i class="fas fa-cog"></i>
                         </div>
                         <div class="application-info">
                             <div class="application-name">${escapeHtml(app.name)}</div>
