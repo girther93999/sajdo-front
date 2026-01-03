@@ -2559,38 +2559,78 @@ document.addEventListener('DOMContentLoaded', function() {
 // Filter keys by search
 function filterKeys() {
     const searchInput = document.getElementById('key-search');
-    if (!searchInput) return;
+    if (!searchInput) {
+        console.warn('Search input not found');
+        return;
+    }
     
     const searchTerm = searchInput.value.toLowerCase().trim();
-    const rows = document.querySelectorAll('#keys-table tbody tr');
     
-    // Don't filter if it's the loading row
-    if (rows.length === 1 && rows[0].querySelector('.loading')) {
+    // Find the table body - try multiple selectors
+    let tbody = document.querySelector('table.keys-table tbody');
+    if (!tbody) {
+        tbody = document.querySelector('#keys-table');
+    }
+    if (!tbody) {
+        // Try to find any table in the keys tab
+        const keysTab = document.getElementById('keys-tab');
+        if (keysTab) {
+            tbody = keysTab.querySelector('table tbody');
+        }
+    }
+    
+    if (!tbody) {
+        console.warn('Table body not found for search');
+        return;
+    }
+    
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    if (rows.length === 0) {
         return;
     }
     
     rows.forEach(row => {
         // Skip if it's a loading/empty row
         if (row.querySelector('.loading')) {
+            row.style.display = searchTerm === '' ? '' : 'none';
             return;
         }
         
-        const keyText = row.querySelector('td:nth-child(2) code')?.textContent.toLowerCase() || '';
-        const hwidText = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
-        const expiryText = row.querySelector('td:nth-child(4)')?.textContent.toLowerCase() || '';
-        const frozenText = row.querySelector('td:nth-child(5)')?.textContent.toLowerCase() || '';
-        const createdByText = row.querySelector('td:nth-child(6)')?.textContent.toLowerCase() || '';
+        // Get text from each column (accounting for checkbox in first column)
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 6) {
+            row.style.display = searchTerm === '' ? '' : 'none';
+            return;
+        }
         
-        if (searchTerm === '' || 
+        // Get text from each column - handle both code elements and regular text
+        let keyText = '';
+        const keyCell = cells[1];
+        if (keyCell) {
+            const codeEl = keyCell.querySelector('code');
+            keyText = codeEl ? codeEl.textContent.toLowerCase() : keyCell.textContent.toLowerCase();
+        }
+        
+        const hwidCell = cells[2];
+        let hwidText = '';
+        if (hwidCell) {
+            const hwidSpan = hwidCell.querySelector('.hwid-display');
+            hwidText = hwidSpan ? hwidSpan.textContent.toLowerCase() : hwidCell.textContent.toLowerCase();
+        }
+        
+        const expiryText = (cells[3]?.textContent || '').toLowerCase();
+        const frozenText = (cells[4]?.textContent || '').toLowerCase();
+        const createdByText = (cells[5]?.textContent || '').toLowerCase();
+        
+        const matches = searchTerm === '' || 
             keyText.includes(searchTerm) || 
             hwidText.includes(searchTerm) || 
             expiryText.includes(searchTerm) ||
             frozenText.includes(searchTerm) ||
-            createdByText.includes(searchTerm)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+            createdByText.includes(searchTerm);
+        
+        row.style.display = matches ? '' : 'none';
     });
 }
 

@@ -145,7 +145,7 @@
                     <div class="key-list-header">
                         <h2>Key List</h2>
                         <div class="search-container">
-                            <input type="text" id="app-key-search" class="search-input" placeholder="Search keys..." onkeyup="filterAppKeys()" onfocus="clearSearchPlaceholder()">
+                            <input type="text" id="app-key-search" class="search-input" placeholder="Search keys..." oninput="filterAppKeys()" onkeyup="filterAppKeys()" onfocus="clearSearchPlaceholder()">
                             <i class="fas fa-search search-icon"></i>
                         </div>
                     </div>
@@ -597,7 +597,7 @@ if (auth.validateKey(userKey)) {
                 <div class="key-list-header">
                     <h2>Key List</h2>
                     <div class="search-container">
-                        <input type="text" id="key-search" class="search-input" placeholder="Search keys..." onkeyup="filterKeys()" onfocus="clearSearchPlaceholder()">
+                        <input type="text" id="key-search" class="search-input" placeholder="Search keys..." oninput="filterKeys()" onkeyup="filterKeys()" onfocus="clearSearchPlaceholder()">
                         <i class="fas fa-search search-icon"></i>
                     </div>
                 </div>
