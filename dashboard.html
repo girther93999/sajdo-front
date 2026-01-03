@@ -33,46 +33,35 @@
                 </div>
             </div>
             <nav class="sidebar-nav">
-                <button class="nav-item" onclick="showTab('applications')" data-tab="applications">
+                <!-- Regular user nav items -->
+                <button class="nav-item user-nav" onclick="showTab('applications')" data-tab="applications">
                     <i class="fas fa-cog"></i>
                     <span>Applications</span>
                 </button>
-                <button class="nav-item" onclick="showTab('generate')" data-tab="generate">
+                <button class="nav-item user-nav" onclick="showTab('generate')" data-tab="generate">
                     <i class="fas fa-plus"></i>
                     <span>Key Gen</span>
                 </button>
-                <button class="nav-item active" onclick="showTab('keys')" data-tab="keys">
+                <button class="nav-item user-nav active" onclick="showTab('keys')" data-tab="keys">
                     <i class="fas fa-key"></i>
                     <span>Keys</span>
                 </button>
-                <button class="nav-item" onclick="showTab('files')" data-tab="files">
-                    <i class="fas fa-file"></i>
-                    <span>Files</span>
-                </button>
-                <button class="nav-item" onclick="showTab('variables')" data-tab="variables">
-                    <i class="fas fa-code"></i>
-                    <span>Variables</span>
-                </button>
-                <button class="nav-item" onclick="showTab('resellers')" data-tab="resellers">
-                    <i class="fas fa-users"></i>
-                    <span>Resellers</span>
-                </button>
-                <!-- Hidden admin tabs -->
+                <!-- Admin-only nav items -->
                 <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-users')" data-tab="admin-users">
                     <i class="fas fa-users"></i>
-                    <span>Admin • Users</span>
+                    <span>Users</span>
                 </button>
                 <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-resellers')" data-tab="admin-resellers">
                     <i class="fas fa-handshake"></i>
-                    <span>Admin • Resellers</span>
+                    <span>Resellers</span>
                 </button>
                 <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-invites')" data-tab="admin-invites">
                     <i class="fas fa-ticket-alt"></i>
-                    <span>Admin • Invites</span>
+                    <span>Invites</span>
                 </button>
                 <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-updates')" data-tab="admin-updates">
                     <i class="fas fa-upload"></i>
-                    <span>Admin • Updates</span>
+                    <span>Updates</span>
                 </button>
             </nav>
         </aside>
@@ -210,50 +199,6 @@ if (auth.validateKey(userKey)) {
                 </div>
             </div>
 
-            <!-- Files Tab -->
-            <div id="files-tab" class="tab-content">
-                <div class="page-header">
-                    <div>
-                        <h1>Files</h1>
-                        <p class="page-subtitle">Manage your files</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <p style="color: #888888;">Files management coming soon...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Variables Tab -->
-            <div id="variables-tab" class="tab-content">
-                <div class="page-header">
-                    <div>
-                        <h1>Variables</h1>
-                        <p class="page-subtitle">Manage your variables</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <p style="color: #888888;">Variables management coming soon...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Resellers Tab -->
-            <div id="resellers-tab" class="tab-content">
-                <div class="page-header">
-                    <div>
-                        <h1>Resellers</h1>
-                        <p class="page-subtitle">Manage resellers</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <p style="color: #888888;">Resellers management coming soon...</p>
-                    </div>
-                </div>
-            </div>
 
             <!-- Overview Tab -->
             <div id="overview-tab" class="tab-content">
@@ -345,7 +290,7 @@ if (auth.validateKey(userKey)) {
                 <div class="key-list-header">
                     <h2>Key List</h2>
                     <div class="search-container">
-                        <input type="text" id="key-search" class="search-input" placeholder="Search keys..." onkeyup="filterKeys()">
+                        <input type="text" id="key-search" class="search-input" placeholder="Search keys..." onkeyup="filterKeys()" onfocus="clearSearchPlaceholder()">
                         <i class="fas fa-search search-icon"></i>
                     </div>
                 </div>
@@ -864,6 +809,21 @@ if (auth.validateKey(userKey)) {
                     </div>
                     <div class="modal-body">
                         <div id="manage-reseller-content" class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Details Modal -->
+            <div id="keyDetailsModal" class="modal">
+                <div class="modal-content" style="max-width: 700px;">
+                    <div class="modal-header">
+                        <h3>Key Details</h3>
+                        <button class="modal-close" onclick="closeKeyDetailsModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="key-details-content" class="loading">Loading...</div>
                     </div>
                 </div>
             </div>

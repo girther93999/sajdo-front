@@ -360,11 +360,15 @@ async function loadKeys() {
                     <td>${escapeHtml(createdBy)}</td>
                     <td>
                         <div class="table-actions">
-                            <button class="btn-reset-hwid" onclick="resetHWID('${key.key}', this)" ${!key.hwid || hwidDisplay === 'None' ? 'disabled' : ''} title="Reset HWID">
+                            <button class="btn-view-details" onclick="showKeyDetails('${escapeHtml(key.key)}')" title="View Details">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Details</span>
+                            </button>
+                            <button class="btn-reset-hwid" onclick="resetHWID('${escapeHtml(key.key)}', this)" ${!key.hwid || hwidDisplay === 'None' ? 'disabled' : ''} title="Reset HWID">
                                 <i class="fas fa-unlock-alt"></i>
                                 <span>Reset HWID</span>
                             </button>
-                            <button class="btn-delete-key" onclick="deleteKey('${key.key}', this)" title="Delete">
+                            <button class="btn-delete-key" onclick="deleteKey('${escapeHtml(key.key)}', this)" title="Delete">
                                 <i class="fas fa-trash"></i>
                                 <span>Delete</span>
                             </button>
@@ -830,6 +834,163 @@ function copyCode(elementId) {
         alert('Failed to copy. Please select and copy manually.');
     });
 }
+
+// Show key details modal
+async function showKeyDetails(keyValue) {
+    const modal = document.getElementById('keyDetailsModal');
+    const content = document.getElementById('key-details-content');
+    
+    if (!modal || !content) return;
+    
+    modal.style.display = 'flex';
+    content.innerHTML = '<div class="loading">Loading key details...</div>';
+    
+    // Find the key in cache
+    const key = keysCache.find(k => k.key === keyValue);
+    
+    if (!key) {
+        content.innerHTML = '<div style="color: #ef4444;">Key not found</div>';
+        return;
+    }
+    
+    // Format dates
+    const createdAt = key.createdAt ? new Date(key.createdAt).toLocaleString() : 'N/A';
+    const expiresAt = key.expiresAt ? new Date(key.expiresAt).toLocaleString() : 'Never';
+    const lastCheck = key.lastCheck ? new Date(key.lastCheck).toLocaleString() : 'Never';
+    const usedAt = key.usedAt ? new Date(key.usedAt).toLocaleString() : 'Never';
+    
+    // Calculate expiry in hours
+    let expiryHours = 'N/A';
+    if (key.expiresAt) {
+        const expiry = new Date(key.expiresAt);
+        const now = new Date();
+        const diffMs = expiry - now;
+        if (diffMs > 0) {
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            expiryHours = `${diffHours}h`;
+        } else {
+            expiryHours = 'Expired';
+        }
+    } else if (key.amount && key.duration) {
+        const durationMap = { 'day': 24, 'week': 168, 'month': 720, 'hour': 1, 'minute': 1/60, 'second': 1/3600 };
+        const hours = (key.amount || 0) * (durationMap[key.duration] || 0);
+        if (hours > 0) {
+            expiryHours = `${Math.floor(hours)}h`;
+        }
+    }
+    
+    // Determine status
+    let status = 'Active';
+    let statusClass = 'status-active';
+    if (key.expiresAt) {
+        const expiry = new Date(key.expiresAt);
+        if (expiry < new Date()) {
+            status = 'Expired';
+            statusClass = 'status-expired';
+        }
+    }
+    if (key.usedBy) {
+        status = 'Used';
+        statusClass = 'status-used';
+    }
+    
+    const html = `
+        <div class="key-details-section">
+            <h4>Key Information</h4>
+            <div class="detail-row">
+                <span class="detail-label">Key:</span>
+                <code class="detail-value">${escapeHtml(key.key)}</code>
+                <button class="btn-icon" onclick="copyToClipboard('${escapeHtml(key.key)}')" title="Copy">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="status ${statusClass}">${status}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Created:</span>
+                <span class="detail-value">${createdAt}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Expires:</span>
+                <span class="detail-value">${expiresAt}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Expiry (Hours):</span>
+                <span class="detail-value">${expiryHours}</span>
+            </div>
+        </div>
+        
+        <div class="key-details-section">
+            <h4>Hardware & Network</h4>
+            <div class="detail-row">
+                <span class="detail-label">HWID:</span>
+                <code class="detail-value">${key.hwid ? escapeHtml(key.hwid) : 'None'}</code>
+                ${key.hwid ? `<button class="btn-icon" onclick="copyToClipboard('${escapeHtml(key.hwid)}')" title="Copy"><i class="fas fa-copy"></i></button>` : ''}
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">IP Address:</span>
+                <span class="detail-value">${key.ip ? escapeHtml(key.ip) : 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Last Check:</span>
+                <span class="detail-value">${lastCheck}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Used At:</span>
+                <span class="detail-value">${usedAt}</span>
+            </div>
+        </div>
+        
+        <div class="key-details-section">
+            <h4>Additional Information</h4>
+            <div class="detail-row">
+                <span class="detail-label">Frozen:</span>
+                <span class="detail-value">${key.frozen ? 'Yes' : 'No'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Created By:</span>
+                <span class="detail-value">${escapeHtml(key.createdBy || currentUser?.username || 'N/A')}</span>
+            </div>
+            ${key.amount && key.duration ? `
+            <div class="detail-row">
+                <span class="detail-label">Duration:</span>
+                <span class="detail-value">${key.amount} ${key.duration}(s)</span>
+            </div>
+            ` : ''}
+        </div>
+    `;
+    
+    content.innerHTML = html;
+}
+
+// Close key details modal
+function closeKeyDetailsModal() {
+    const modal = document.getElementById('keyDetailsModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Close modal when clicking outside
+document.addEventListener('DOMContentLoaded', function() {
+    const keyDetailsModal = document.getElementById('keyDetailsModal');
+    if (keyDetailsModal) {
+        keyDetailsModal.addEventListener('click', function(e) {
+            if (e.target === keyDetailsModal) {
+                closeKeyDetailsModal();
+            }
+        });
+    }
+    
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeKeyDetailsModal();
+        }
+    });
+});
 
 // Show file content in modal
 async function showFile(filename) {
@@ -1705,24 +1866,70 @@ function checkAdminAccess() {
         document.querySelectorAll('.admin-only').forEach(el => {
             el.style.display = 'flex';
         });
-        // Ensure admin tabs exist (they’re in markup) and default to admin users
+        // Ensure admin tabs exist (they're in markup) and default to admin users
         showTab('admin-users');
+    } else {
+        // Regular user - hide admin nav items
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = 'none';
+        });
     }
 }
 
+// Clear search placeholder on focus
+function clearSearchPlaceholder() {
+    const searchInput = document.getElementById('key-search');
+    if (searchInput) {
+        // Only clear placeholder if input is empty
+        if (searchInput.value === '') {
+            searchInput.placeholder = '';
+        }
+    }
+}
+
+// Restore placeholder if empty on blur
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('key-search');
+    if (searchInput) {
+        searchInput.addEventListener('blur', function() {
+            if (this.value === '') {
+                this.placeholder = 'Search keys...';
+            }
+        });
+    }
+});
+
 // Filter keys by search
 function filterKeys() {
-    const searchTerm = document.getElementById('key-search')?.value.toLowerCase() || '';
+    const searchInput = document.getElementById('key-search');
+    if (!searchInput) return;
+    
+    const searchTerm = searchInput.value.toLowerCase().trim();
     const rows = document.querySelectorAll('#keys-table tbody tr');
     
+    // Don't filter if it's the loading row
+    if (rows.length === 1 && rows[0].querySelector('.loading')) {
+        return;
+    }
+    
     rows.forEach(row => {
+        // Skip if it's a loading/empty row
+        if (row.querySelector('.loading')) {
+            return;
+        }
+        
         const keyText = row.querySelector('td:nth-child(2) code')?.textContent.toLowerCase() || '';
         const hwidText = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
-        const levelText = row.querySelector('td:nth-child(5)')?.textContent.toLowerCase() || '';
-        const createdByText = row.querySelector('td:nth-child(7)')?.textContent.toLowerCase() || '';
+        const expiryText = row.querySelector('td:nth-child(4)')?.textContent.toLowerCase() || '';
+        const frozenText = row.querySelector('td:nth-child(5)')?.textContent.toLowerCase() || '';
+        const createdByText = row.querySelector('td:nth-child(6)')?.textContent.toLowerCase() || '';
         
-        if (keyText.includes(searchTerm) || hwidText.includes(searchTerm) || 
-            levelText.includes(searchTerm) || createdByText.includes(searchTerm)) {
+        if (searchTerm === '' || 
+            keyText.includes(searchTerm) || 
+            hwidText.includes(searchTerm) || 
+            expiryText.includes(searchTerm) ||
+            frozenText.includes(searchTerm) ||
+            createdByText.includes(searchTerm)) {
             row.style.display = '';
         } else {
             row.style.display = 'none';
@@ -1755,6 +1962,13 @@ function loadTheme() {
 document.addEventListener('DOMContentLoaded', async () => {
     // Load saved theme
     loadTheme();
+    
+    // Clear search input
+    const searchInput = document.getElementById('key-search');
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.placeholder = 'Search keys...';
+    }
     
     // Load saved key generation preferences on page load
     loadKeyPreferences();
