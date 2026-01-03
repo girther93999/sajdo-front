@@ -10,56 +10,54 @@
 <body>
     <nav class="navbar">
         <div class="nav-brand">
-            <div class="nav-logo">
-                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="#ffffff" stroke-width="3"/>
-                    <path d="M 30 50 L 45 65 L 70 35" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <span class="slide-in-left">Artic Auth</span>
+            <h1>Admin Panel</h1>
         </div>
-        <div class="nav-user">
-            <div class="user-menu">
-                <button class="user-menu-trigger" onclick="toggleUserMenu()">
-                    <i class="fas fa-user-circle"></i>
-                    <span id="username-display"></span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="user-menu-dropdown" id="userMenuDropdown">
-                    <a href="#" onclick="showTab('settings'); toggleUserMenu(); return false;">
-                        <i class="fas fa-cog"></i>
-                        <span>Account Settings</span>
-                    </a>
-                    <a href="#" onclick="logout(); return false;">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </a>
-                </div>
-            </div>
+        <div class="nav-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="btn-signout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sign Out</span>
+            </button>
         </div>
     </nav>
 
     <div class="dashboard-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logged-in-section">
+                    <div class="logged-in-label">LOGGED IN AS</div>
+                    <div class="logged-in-username" id="sidebar-username">Loading...</div>
+                </div>
+            </div>
             <nav class="sidebar-nav">
-                <button class="nav-item user-nav active" onclick="showTab('overview')" data-tab="overview">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Overview</span>
+                <button class="nav-item" onclick="showTab('applications')" data-tab="applications">
+                    <i class="fas fa-cog"></i>
+                    <span>Applications</span>
                 </button>
-                <button class="nav-item user-nav" onclick="showTab('keys')" data-tab="keys">
+                <button class="nav-item" onclick="showTab('generate')" data-tab="generate">
+                    <i class="fas fa-plus"></i>
+                    <span>Key Gen</span>
+                </button>
+                <button class="nav-item active" onclick="showTab('keys')" data-tab="keys">
                     <i class="fas fa-key"></i>
                     <span>Keys</span>
                 </button>
-                <button class="nav-item user-nav" onclick="showTab('generate')" data-tab="generate">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Generate</span>
+                <button class="nav-item" onclick="showTab('files')" data-tab="files">
+                    <i class="fas fa-file"></i>
+                    <span>Files</span>
                 </button>
-                <button class="nav-item user-nav" onclick="showTab('credentials')" data-tab="credentials">
+                <button class="nav-item" onclick="showTab('variables')" data-tab="variables">
                     <i class="fas fa-code"></i>
-                    <span>Integration</span>
+                    <span>Variables</span>
                 </button>
-                <!-- Admin-only nav items (hidden for normal users) -->
+                <button class="nav-item" onclick="showTab('resellers')" data-tab="resellers">
+                    <i class="fas fa-users"></i>
+                    <span>Resellers</span>
+                </button>
+                <!-- Hidden admin tabs -->
                 <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-users')" data-tab="admin-users">
                     <i class="fas fa-users"></i>
                     <span>Admin • Users</span>
@@ -81,8 +79,68 @@
 
         <!-- Main Content Area -->
         <main class="main-content">
+            <!-- Applications Tab -->
+            <div id="applications-tab" class="tab-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Applications</h1>
+                        <p class="page-subtitle">Manage your applications</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <p style="color: #888888;">Applications management coming soon...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Files Tab -->
+            <div id="files-tab" class="tab-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Files</h1>
+                        <p class="page-subtitle">Manage your files</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <p style="color: #888888;">Files management coming soon...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Variables Tab -->
+            <div id="variables-tab" class="tab-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Variables</h1>
+                        <p class="page-subtitle">Manage your variables</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <p style="color: #888888;">Variables management coming soon...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resellers Tab -->
+            <div id="resellers-tab" class="tab-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Resellers</h1>
+                        <p class="page-subtitle">Manage resellers</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <p style="color: #888888;">Resellers management coming soon...</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Overview Tab -->
-            <div id="overview-tab" class="tab-content active">
+            <div id="overview-tab" class="tab-content">
                 <div class="page-header">
                     <div>
                         <h1 class="slide-in-left">Dashboard</h1>
@@ -167,16 +225,13 @@
             </div>
 
             <!-- Keys Tab -->
-            <div id="keys-tab" class="tab-content">
-                <div class="page-header">
-                    <div>
-                        <h1>License Keys</h1>
-                        <p class="page-subtitle">Manage and monitor your license keys</p>
+            <div id="keys-tab" class="tab-content active">
+                <div class="key-list-header">
+                    <h2>Key List</h2>
+                    <div class="search-container">
+                        <input type="text" id="key-search" class="search-input" placeholder="Search keys..." onkeyup="filterKeys()">
+                        <i class="fas fa-search search-icon"></i>
                     </div>
-                    <button class="btn btn-primary" onclick="loadKeys()">
-                        <i class="fas fa-sync-alt"></i>
-                        <span>Refresh</span>
-                    </button>
                 </div>
 
                 <div class="card">
@@ -197,24 +252,23 @@
                             <div id="keys-selection-status" style="align-self:center; color:#888; font-size:12px; margin-left:4px;"></div>
                         </div>
                         <div class="table-wrapper">
-                            <table>
+                            <table class="keys-table">
                                 <thead>
                                     <tr>
                                         <th style="width:36px; text-align:center;">
                                             <input type="checkbox" id="keys-select-all" onclick="toggleSelectAllKeys(this.checked)">
                                         </th>
                                         <th>Key</th>
-                                        <th>Status</th>
-                                        <th>Expires</th>
-                                        <th>HW ID</th>
-                                        <th>IP Address</th>
-                                        <th>Created</th>
-                                        <th>Last Used</th>
+                                        <th>HWID</th>
+                                        <th>Expiry Date</th>
+                                        <th>Level</th>
+                                        <th>Frozen</th>
+                                        <th>Created By</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="keys-table">
-                                    <tr><td colspan="9" class="loading">Loading keys...</td></tr>
+                                    <tr><td colspan="8" class="loading">Loading keys...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -430,8 +484,8 @@ if (auth.validateKey(userKey)) {
                     <div class="card-body">
                         <div id="admin-users-list" class="loading">Loading users...</div>
                     </div>
+                    </div>
                 </div>
-            </div>
 
             <!-- Admin Resellers Tab -->
             <div id="admin-resellers-tab" class="tab-content" style="display: none;">
@@ -452,8 +506,8 @@ if (auth.validateKey(userKey)) {
                     <div class="card-body">
                         <div id="admin-resellers-list" class="loading">Loading resellers...</div>
                     </div>
+                    </div>
                 </div>
-            </div>
 
             <!-- Admin Invites Tab -->
             <div id="admin-invites-tab" class="tab-content" style="display: none;">

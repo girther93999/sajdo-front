@@ -109,8 +109,10 @@ async function checkAuth() {
         
         const usernameDisplay = document.getElementById('username-display');
         const overviewUsername = document.getElementById('overview-username');
+        const sidebarUsername = document.getElementById('sidebar-username');
         if (usernameDisplay) usernameDisplay.textContent = currentUser.username;
         if (overviewUsername) overviewUsername.textContent = currentUser.username;
+        if (sidebarUsername) sidebarUsername.textContent = currentUser.username;
         
         // Display account credentials (check if elements exist)
         const accountIdEl = document.getElementById('account-id');
@@ -259,6 +261,14 @@ function copyCredential(elementId) {
     });
 }
 
+// Escape HTML helper (defined early for use throughout)
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Load all keys
 async function loadKeys() {
     try {
@@ -277,7 +287,7 @@ async function loadKeys() {
             tbody.innerHTML = '';
             
             if (data.keys.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="loading">No keys generated yet</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="loading">No keys generated yet</td></tr>';
                 updateSelectionStatus();
                 updateSelectAllCheckbox();
                 return;
@@ -306,46 +316,62 @@ async function loadKeys() {
                     statusClass = 'status-used';
                 }
                 
-                const expiryText = key.expiresAt 
-                    ? new Date(key.expiresAt).toLocaleString() 
-                    : 'Never';
-                
-                const ip = key.ip || '-';
-                const lastCheck = key.lastCheck 
-                    ? new Date(key.lastCheck).toLocaleString() 
-                    : '-';
-                
-                // HWID Lock display with hover tooltip
-                let hwidDisplay = '';
-                if (key.hwid) {
-                    hwidDisplay = `
-                        <div class="hwid-container">
-                            <span class="hwid-indicator"><i class="fas fa-lock"></i> Locked</span>
-                            <div class="hwid-tooltip">
-                                <code>${key.hwid}</code>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    hwidDisplay = '<span class="hwid-indicator"><i class="fas fa-unlock"></i> Not Locked</span>';
+                // Calculate expiry in hours
+                let expiryText = 'Never';
+                if (key.expiresAt) {
+                    const expiry = new Date(key.expiresAt);
+                    const now = new Date();
+                    const diffMs = expiry - now;
+                    if (diffMs > 0) {
+                        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                        expiryText = `${diffHours}h`;
+                    } else {
+                        expiryText = 'Expired';
+                    }
+                } else if (key.amount && key.duration) {
+                    // Calculate from duration if available
+                    const durationMap = { 'day': 24, 'week': 168, 'month': 720, 'hour': 1, 'minute': 1/60, 'second': 1/3600 };
+                    const hours = (key.amount || 0) * (durationMap[key.duration] || 0);
+                    if (hours > 0) {
+                        expiryText = `${Math.floor(hours)}h`;
+                    }
                 }
+                
+                // HWID display
+                let hwidDisplay = key.hwid || 'None';
+                
+                // Level - determine from key or default
+                let level = 'rust internal'; // Default level, can be customized
+                if (key.level) {
+                    level = key.level;
+                }
+                
+                // Frozen status
+                const frozen = key.frozen ? 'Yes' : 'No';
+                
+                // Created By
+                const createdBy = key.createdBy || currentUser?.username || 'N/A';
                 
                 tr.innerHTML = `
                     <td style="text-align:center;">
                         <input type="checkbox" class="key-row-checkbox" data-key="${key.key}" onclick="toggleKeySelection(this.dataset.key, this.checked)">
                     </td>
-                    <td><code>${key.key}</code></td>
-                    <td><span class="status ${statusClass}">${status}</span></td>
+                    <td><code>${escapeHtml(key.key)}</code></td>
+                    <td>${hwidDisplay === 'None' ? 'None' : `<span class="hwid-display" title="${escapeHtml(hwidDisplay)}">${escapeHtml(hwidDisplay.substring(0, 20))}${hwidDisplay.length > 20 ? '...' : ''}</span>`}</td>
                     <td>${expiryText}</td>
-                    <td>${hwidDisplay}</td>
-                    <td>${ip}</td>
-                    <td>${new Date(key.createdAt).toLocaleString()}</td>
-                    <td>${lastCheck}</td>
+                    <td><span class="level-badge level-${level.replace(/\s+/g, '-').toLowerCase()}">${escapeHtml(level)}</span></td>
+                    <td>${frozen}</td>
+                    <td>${escapeHtml(createdBy)}</td>
                     <td>
                         <div class="table-actions">
-                            <button class="table-action-btn" onclick="openAddTimeModal('${key.key}')" title="Add Time"><i class="fas fa-clock"></i></button>
-                            <button class="table-action-btn" onclick="resetHWID('${key.key}')" ${!key.hwid ? 'disabled' : ''} title="Reset HWID"><i class="fas fa-unlock-alt"></i></button>
-                            <button class="table-action-btn table-action-btn-danger" onclick="deleteKey('${key.key}')" title="Delete"><i class="fas fa-trash"></i></button>
+                            <button class="btn-reset-hwid" onclick="resetHWID('${key.key}')" ${!key.hwid || hwidDisplay === 'None' ? 'disabled' : ''} title="Reset HWID">
+                                <i class="fas fa-unlock-alt"></i>
+                                <span>Reset HWID</span>
+                            </button>
+                            <button class="btn-delete-key" onclick="deleteKey('${key.key}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                                <span>Delete</span>
+                            </button>
                         </div>
                     </td>
                 `;
@@ -515,7 +541,7 @@ async function deleteSelectedKeys() {
     }
     if (!confirm(`Delete ${selectedKeys.size} selected key(s)?`)) return;
     await bulkDeleteKeys(Array.from(selectedKeys));
-}
+        }
 
 async function deleteExpiredKeys() {
     const now = new Date();
@@ -626,15 +652,17 @@ function showTab(tabName) {
         loadKeys();
     } else if (tabName === 'overview') {
         loadStats();
+    } else if (tabName === 'generate') {
+        loadKeyPreferences();
     } else if (currentUser && currentUser.isAdmin) {
         if (tabName === 'admin-users') {
-            loadAdminUsers();
+        loadAdminUsers();
         } else if (tabName === 'admin-resellers') {
-            loadAdminResellers();
+        loadAdminResellers();
         } else if (tabName === 'admin-invites') {
-            loadAdminInvites();
+        loadAdminInvites();
         } else if (tabName === 'admin-updates') {
-            checkUpdateInfo();
+        checkUpdateInfo();
         }
     }
     
@@ -1573,14 +1601,58 @@ function checkAdminAccess() {
     }
 }
 
+// Filter keys by search
+function filterKeys() {
+    const searchTerm = document.getElementById('key-search')?.value.toLowerCase() || '';
+    const rows = document.querySelectorAll('#keys-table tbody tr');
+    
+    rows.forEach(row => {
+        const keyText = row.querySelector('td:nth-child(2) code')?.textContent.toLowerCase() || '';
+        const hwidText = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
+        const levelText = row.querySelector('td:nth-child(5)')?.textContent.toLowerCase() || '';
+        const createdByText = row.querySelector('td:nth-child(7)')?.textContent.toLowerCase() || '';
+        
+        if (keyText.includes(searchTerm) || hwidText.includes(searchTerm) || 
+            levelText.includes(searchTerm) || createdByText.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Toggle theme (dark mode)
+function toggleTheme() {
+    document.body.classList.toggle('light-theme');
+    const isLight = document.body.classList.contains('light-theme');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    const icon = document.querySelector('.theme-toggle i');
+    if (icon) {
+        icon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+    }
+}
+
+// Load saved theme
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        const icon = document.querySelector('.theme-toggle i');
+        if (icon) icon.className = 'fas fa-sun';
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
+    // Load saved theme
+    loadTheme();
+    
     // Load saved key generation preferences on page load
     loadKeyPreferences();
     
     if (await checkAuth()) {
-        // Load overview stats by default
-        loadStats();
+        // Show keys tab by default (matching the image)
+        showTab('keys');
         // Check admin access
         checkAdminAccess();
         if (currentUser && currentUser.isAdmin) {
