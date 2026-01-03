@@ -216,6 +216,12 @@ body {
     font-weight: 500;
     filter: blur(4px);
     user-select: none;
+    transition: filter 0.3s ease;
+    cursor: pointer;
+}
+
+.logged-in-username:hover {
+    filter: blur(0);
 }
 
 .sidebar-nav {
@@ -709,38 +715,73 @@ table {
     cursor: help;
 }
 
-/* Level Badges */
-.level-badge {
+/* Custom Checkboxes */
+.custom-checkbox {
+    position: relative;
     display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: lowercase;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
 }
 
-.level-rust-internal {
-    background: rgba(34, 197, 94, 0.1);
-    color: #22c55e;
-    border: 1px solid #22c55e;
+.custom-checkbox input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    width: 0;
+    height: 0;
 }
 
-.level-rust-external {
-    background: rgba(59, 130, 246, 0.1);
-    color: #3b82f6;
-    border: 1px solid #3b82f6;
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background: #0a0a0a;
+    border: 2px solid #1a1a1a;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 }
 
-.level-fortnite-external {
-    background: rgba(168, 85, 247, 0.1);
-    color: #a855f7;
-    border: 1px solid #a855f7;
+.custom-checkbox:hover .checkmark {
+    border-color: #2a2a2a;
+    background: #111111;
 }
 
-.level-do-not-use {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border: 1px solid #ef4444;
+.custom-checkbox input:checked ~ .checkmark,
+.custom-checkbox.checked input ~ .checkmark {
+    background: #ffffff;
+    border-color: #ffffff;
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid #0a0a0a;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    animation: checkmarkAppear 0.2s ease;
+}
+
+.custom-checkbox input:checked ~ .checkmark:after {
+    display: block;
+}
+
+@keyframes checkmarkAppear {
+    from {
+        opacity: 0;
+        transform: rotate(45deg) scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: rotate(45deg) scale(1);
+    }
 }
 
 /* Action Buttons */
@@ -789,6 +830,103 @@ table {
 .btn-delete-key:hover {
     background: #b91c1c;
     border-color: #b91c1c;
+}
+
+/* Action Button Animations */
+.btn-reset-hwid,
+.btn-delete-key {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-reset-hwid::before,
+.btn-delete-key::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-reset-hwid:active::before,
+.btn-delete-key:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+.action-loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.action-success {
+    background: #22c55e !important;
+    border-color: #22c55e !important;
+    color: #ffffff !important;
+    animation: successPulse 0.5s ease;
+}
+
+.action-error {
+    background: #ef4444 !important;
+    border-color: #ef4444 !important;
+    color: #ffffff !important;
+    animation: errorShake 0.5s ease;
+}
+
+@keyframes successPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes errorShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+.row-success {
+    animation: rowHighlight 2s ease;
+}
+
+.row-deleting {
+    animation: rowDeleteStart 0.1s ease;
+}
+
+@keyframes rowHighlight {
+    0% {
+        background: transparent;
+    }
+    10% {
+        background: rgba(34, 197, 94, 0.1);
+    }
+    100% {
+        background: transparent;
+    }
+}
+
+@keyframes rowDeleteStart {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(0.98);
+    }
 }
 
 .table-actions {

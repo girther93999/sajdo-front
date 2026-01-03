@@ -287,7 +287,7 @@ async function loadKeys() {
             tbody.innerHTML = '';
             
             if (data.keys.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="loading">No keys generated yet</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">No keys generated yet</td></tr>';
                 updateSelectionStatus();
                 updateSelectAllCheckbox();
                 return;
@@ -340,12 +340,6 @@ async function loadKeys() {
                 // HWID display
                 let hwidDisplay = key.hwid || 'None';
                 
-                // Level - determine from key or default
-                let level = 'rust internal'; // Default level, can be customized
-                if (key.level) {
-                    level = key.level;
-                }
-                
                 // Frozen status
                 const frozen = key.frozen ? 'Yes' : 'No';
                 
@@ -354,21 +348,23 @@ async function loadKeys() {
                 
                 tr.innerHTML = `
                     <td style="text-align:center;">
-                        <input type="checkbox" class="key-row-checkbox" data-key="${key.key}" onclick="toggleKeySelection(this.dataset.key, this.checked)">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" class="key-row-checkbox" data-key="${key.key}" onclick="toggleKeySelection(this.dataset.key, this.checked)">
+                            <span class="checkmark"></span>
+                        </label>
                     </td>
                     <td><code>${escapeHtml(key.key)}</code></td>
                     <td>${hwidDisplay === 'None' ? 'None' : `<span class="hwid-display" title="${escapeHtml(hwidDisplay)}">${escapeHtml(hwidDisplay.substring(0, 20))}${hwidDisplay.length > 20 ? '...' : ''}</span>`}</td>
                     <td>${expiryText}</td>
-                    <td><span class="level-badge level-${level.replace(/\s+/g, '-').toLowerCase()}">${escapeHtml(level)}</span></td>
                     <td>${frozen}</td>
                     <td>${escapeHtml(createdBy)}</td>
                     <td>
                         <div class="table-actions">
-                            <button class="btn-reset-hwid" onclick="resetHWID('${key.key}')" ${!key.hwid || hwidDisplay === 'None' ? 'disabled' : ''} title="Reset HWID">
+                            <button class="btn-reset-hwid" onclick="resetHWID('${key.key}', this)" ${!key.hwid || hwidDisplay === 'None' ? 'disabled' : ''} title="Reset HWID">
                                 <i class="fas fa-unlock-alt"></i>
                                 <span>Reset HWID</span>
                             </button>
-                            <button class="btn-delete-key" onclick="deleteKey('${key.key}')" title="Delete">
+                            <button class="btn-delete-key" onclick="deleteKey('${key.key}', this)" title="Delete">
                                 <i class="fas fa-trash"></i>
                                 <span>Delete</span>
                             </button>
@@ -441,10 +437,18 @@ async function addTime() {
     }
 }
 
-// Reset HWID
-async function resetHWID(key) {
+// Reset HWID with animation
+async function resetHWID(key, buttonElement) {
     if (!confirm(`Reset HWID for key: ${key}?`)) {
         return;
+    }
+    
+    // Add loading animation
+    if (buttonElement) {
+        buttonElement.classList.add('action-loading');
+        buttonElement.disabled = true;
+        const originalHTML = buttonElement.innerHTML;
+        buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Resetting...</span>';
     }
     
     try {
@@ -457,27 +461,121 @@ async function resetHWID(key) {
         const data = await response.json();
         
         if (data.success) {
-            alert('HWID reset successfully');
-            loadKeys();
+            // Success animation
+            if (buttonElement) {
+                buttonElement.classList.remove('action-loading');
+                buttonElement.classList.add('action-success');
+                buttonElement.innerHTML = '<i class="fas fa-check"></i><span>Reset!</span>';
+                
+                // Animate row
+                const row = buttonElement.closest('tr');
+                if (row) {
+                    row.classList.add('row-success');
+                    setTimeout(() => {
+                        row.classList.remove('row-success');
+                    }, 2000);
+                }
+                
+                setTimeout(() => {
+                    buttonElement.classList.remove('action-success');
+                    buttonElement.innerHTML = '<i class="fas fa-unlock-alt"></i><span>Reset HWID</span>';
+                    buttonElement.disabled = false;
+                    loadKeys();
+                }, 1500);
+            } else {
+                loadKeys();
+            }
         } else {
+            // Error animation
+            if (buttonElement) {
+                buttonElement.classList.remove('action-loading');
+                buttonElement.classList.add('action-error');
+                buttonElement.innerHTML = '<i class="fas fa-times"></i><span>Error</span>';
+                
+                setTimeout(() => {
+                    buttonElement.classList.remove('action-error');
+                    buttonElement.innerHTML = '<i class="fas fa-unlock-alt"></i><span>Reset HWID</span>';
+                    buttonElement.disabled = false;
+                }, 2000);
+            }
             alert('Error: ' + data.message);
         }
     } catch (error) {
+        if (buttonElement) {
+            buttonElement.classList.remove('action-loading');
+            buttonElement.classList.add('action-error');
+            buttonElement.innerHTML = '<i class="fas fa-times"></i><span>Error</span>';
+            
+            setTimeout(() => {
+                buttonElement.classList.remove('action-error');
+                buttonElement.innerHTML = '<i class="fas fa-unlock-alt"></i><span>Reset HWID</span>';
+                buttonElement.disabled = false;
+            }, 2000);
+        }
         alert('Error resetting HWID');
     }
 }
 
-// Delete key
-async function deleteKey(key) {
+// Delete key with animation
+async function deleteKey(key, buttonElement) {
     if (!confirm(`Delete key: ${key}?`)) {
         return;
     }
     
+    // Add loading animation
+    if (buttonElement) {
+        buttonElement.classList.add('action-loading');
+        buttonElement.disabled = true;
+        const originalHTML = buttonElement.innerHTML;
+        buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Deleting...</span>';
+    }
+    
     const ok = await deleteKeyApi(key);
     if (ok) {
-        loadKeys();
-        loadStats();
+        // Success animation - fade out row
+        if (buttonElement) {
+            const row = buttonElement.closest('tr');
+            if (row) {
+                row.classList.add('row-deleting');
+                setTimeout(() => {
+                    row.style.transition = 'all 0.4s ease-out';
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(-20px)';
+                    row.style.maxHeight = row.offsetHeight + 'px';
+                    
+                    setTimeout(() => {
+                        row.style.maxHeight = '0';
+                        row.style.padding = '0';
+                        row.style.margin = '0';
+                        row.style.border = 'none';
+                        
+                        setTimeout(() => {
+                            loadKeys();
+                            loadStats();
+                        }, 400);
+                    }, 400);
+                }, 100);
+            } else {
+                loadKeys();
+                loadStats();
+            }
+        } else {
+            loadKeys();
+            loadStats();
+        }
     } else {
+        // Error animation
+        if (buttonElement) {
+            buttonElement.classList.remove('action-loading');
+            buttonElement.classList.add('action-error');
+            buttonElement.innerHTML = '<i class="fas fa-times"></i><span>Error</span>';
+            
+            setTimeout(() => {
+                buttonElement.classList.remove('action-error');
+                buttonElement.innerHTML = '<i class="fas fa-trash"></i><span>Delete</span>';
+                buttonElement.disabled = false;
+            }, 2000);
+        }
         alert('Error deleting key');
     }
 }
@@ -523,6 +621,15 @@ function toggleSelectAllKeys(checked) {
     }
     document.querySelectorAll('.key-row-checkbox').forEach(cb => {
         cb.checked = checked;
+        // Trigger visual update
+        const checkbox = cb.closest('.custom-checkbox');
+        if (checkbox) {
+            if (checked) {
+                checkbox.classList.add('checked');
+            } else {
+                checkbox.classList.remove('checked');
+            }
+        }
     });
     updateSelectionStatus();
     updateSelectAllCheckbox();
@@ -654,6 +761,8 @@ function showTab(tabName) {
         loadStats();
     } else if (tabName === 'generate') {
         loadKeyPreferences();
+    } else if (tabName === 'applications') {
+        // Applications tab shows integration info - credentials are already loaded in checkAuth
     } else if (currentUser && currentUser.isAdmin) {
         if (tabName === 'admin-users') {
         loadAdminUsers();
