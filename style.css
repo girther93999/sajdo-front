@@ -855,53 +855,188 @@ table {
 }
 
 /* Key Details Modal */
-.key-details-section {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid #1a1a1a;
+.key-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background: #0a0a0a;
+    border-radius: 8px;
+    border: 1px solid #1a1a1a;
+    margin-bottom: 1.5rem;
 }
 
-.key-details-section:last-child {
-    border-bottom: none;
-}
-
-.key-details-section h4 {
-    color: #ffffff;
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-
-.detail-row {
+.key-details-key {
+    flex: 1;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-bottom: 0.75rem;
-    padding: 0.5rem 0;
+}
+
+.key-details-key code {
+    flex: 1;
+    background: #111111;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #1a1a1a;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    color: #ffffff;
+    word-break: break-all;
+    font-weight: 500;
+}
+
+.key-details-status {
+    margin-left: 1rem;
+}
+
+.key-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.key-details-card {
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.key-details-card:hover {
+    border-color: #2a2a2a;
+}
+
+.key-details-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: #111111;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.key-details-card-header i {
+    color: #888888;
+    font-size: 1rem;
+}
+
+.key-details-card-header h4 {
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.key-details-card-body {
+    padding: 1.25rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
 .detail-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     color: #888888;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-weight: 500;
-    min-width: 140px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-label i {
+    color: #555555;
+    font-size: 0.75rem;
+    width: 16px;
+    text-align: center;
 }
 
 .detail-value {
-    flex: 1;
     color: #e5e5e5;
     font-size: 0.875rem;
+    font-weight: 500;
+    word-break: break-word;
 }
 
-.detail-value code {
-    background: #0a0a0a;
-    padding: 0.5rem 0.75rem;
-    border-radius: 4px;
+.detail-value.highlight {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.9375rem;
+}
+
+.detail-value-code {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detail-value-code code {
+    flex: 1;
+    background: #111111;
+    padding: 0.625rem 0.875rem;
+    border-radius: 6px;
     border: 1px solid #1a1a1a;
     font-family: 'Courier New', monospace;
     font-size: 0.8125rem;
+    color: #ffffff;
     word-break: break-all;
-    display: block;
+    font-weight: 500;
+}
+
+.btn-icon-small {
+    background: transparent;
+    border: 1px solid #1a1a1a;
+    color: #888888;
+    padding: 0.375rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.btn-icon-small:hover {
+    background: #1a1a1a;
+    border-color: #2a2a2a;
+    color: #ffffff;
+}
+
+/* Responsive for key details */
+@media (max-width: 768px) {
+    .key-details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .key-details-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .key-details-status {
+        margin-left: 0;
+        align-self: flex-end;
+    }
 }
 
 /* Applications Grid */

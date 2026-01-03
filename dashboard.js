@@ -927,70 +927,122 @@ async function showKeyDetails(keyValue) {
     }
     
     const html = `
-        <div class="key-details-section">
-            <h4>Key Information</h4>
-            <div class="detail-row">
-                <span class="detail-label">Key:</span>
-                <code class="detail-value">${escapeHtml(key.key)}</code>
-                <button class="btn-icon" onclick="copyToClipboard('${escapeHtml(key.key)}')" title="Copy">
+        <div class="key-details-header">
+            <div class="key-details-key">
+                <code>${escapeHtml(key.key)}</code>
+                <button class="btn-icon" onclick="copyToClipboard('${escapeHtml(key.key)}')" title="Copy Key">
                     <i class="fas fa-copy"></i>
                 </button>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Status:</span>
+            <div class="key-details-status">
                 <span class="status ${statusClass}">${status}</span>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Created:</span>
-                <span class="detail-value">${createdAt}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Expires:</span>
-                <span class="detail-value">${expiresAt}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Expiry (Hours):</span>
-                <span class="detail-value">${expiryHours}</span>
-            </div>
         </div>
-        
-        <div class="key-details-section">
-            <h4>Hardware & Network</h4>
-            <div class="detail-row">
-                <span class="detail-label">HWID:</span>
-                <code class="detail-value">${key.hwid ? escapeHtml(key.hwid) : 'None'}</code>
-                ${key.hwid ? `<button class="btn-icon" onclick="copyToClipboard('${escapeHtml(key.hwid)}')" title="Copy"><i class="fas fa-copy"></i></button>` : ''}
+
+        <div class="key-details-grid">
+            <div class="key-details-card">
+                <div class="key-details-card-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h4>Key Information</h4>
+                </div>
+                <div class="key-details-card-body">
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-calendar"></i>
+                            <span>Created</span>
+                        </div>
+                        <div class="detail-value">${createdAt}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-clock"></i>
+                            <span>Expires</span>
+                        </div>
+                        <div class="detail-value">${expiresAt}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span>Time Remaining</span>
+                        </div>
+                        <div class="detail-value highlight">${expiryHours}</div>
+                    </div>
+                    ${key.amount && key.duration ? `
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-tag"></i>
+                            <span>Duration</span>
+                        </div>
+                        <div class="detail-value">${key.amount} ${key.duration}(s)</div>
+                    </div>
+                    ` : ''}
+                </div>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">IP Address:</span>
-                <span class="detail-value">${key.ip ? escapeHtml(key.ip) : 'N/A'}</span>
+
+            <div class="key-details-card">
+                <div class="key-details-card-header">
+                    <i class="fas fa-microchip"></i>
+                    <h4>Hardware & Network</h4>
+                </div>
+                <div class="key-details-card-body">
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-lock"></i>
+                            <span>HWID</span>
+                        </div>
+                        <div class="detail-value-code">
+                            <code>${key.hwid ? escapeHtml(key.hwid) : 'Not Locked'}</code>
+                            ${key.hwid ? `<button class="btn-icon-small" onclick="copyToClipboard('${escapeHtml(key.hwid)}')" title="Copy HWID"><i class="fas fa-copy"></i></button>` : ''}
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-network-wired"></i>
+                            <span>IP Address</span>
+                        </div>
+                        <div class="detail-value">${key.ip ? escapeHtml(key.ip) : 'N/A'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Last Check</span>
+                        </div>
+                        <div class="detail-value">${lastCheck}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-play-circle"></i>
+                            <span>Used At</span>
+                        </div>
+                        <div class="detail-value">${usedAt}</div>
+                    </div>
+                </div>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Last Check:</span>
-                <span class="detail-value">${lastCheck}</span>
+
+            <div class="key-details-card">
+                <div class="key-details-card-header">
+                    <i class="fas fa-user"></i>
+                    <h4>Account Information</h4>
+                </div>
+                <div class="key-details-card-body">
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Created By</span>
+                        </div>
+                        <div class="detail-value">${escapeHtml(key.createdBy || currentUser?.username || 'N/A')}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-snowflake"></i>
+                            <span>Frozen</span>
+                        </div>
+                        <div class="detail-value">
+                            <span class="status ${key.frozen ? 'status-expired' : 'status-active'}">${key.frozen ? 'Yes' : 'No'}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Used At:</span>
-                <span class="detail-value">${usedAt}</span>
-            </div>
-        </div>
-        
-        <div class="key-details-section">
-            <h4>Additional Information</h4>
-            <div class="detail-row">
-                <span class="detail-label">Frozen:</span>
-                <span class="detail-value">${key.frozen ? 'Yes' : 'No'}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Created By:</span>
-                <span class="detail-value">${escapeHtml(key.createdBy || currentUser?.username || 'N/A')}</span>
-            </div>
-            ${key.amount && key.duration ? `
-            <div class="detail-row">
-                <span class="detail-label">Duration:</span>
-                <span class="detail-value">${key.amount} ${key.duration}(s)</span>
-            </div>
-            ` : ''}
         </div>
     `;
     
