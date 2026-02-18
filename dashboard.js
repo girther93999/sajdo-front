@@ -202,10 +202,8 @@ document.getElementById('duration')?.addEventListener('change', function() {
 // Load stats
 async function loadStats() {
     try {
-        const response = await fetch(`${API}/keys/stats`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: currentToken })
+        const response = await makeAuthenticatedRequest(`${API}/keys/stats`, {
+            method: 'POST'
         });
         
         const data = await response.json();
@@ -314,10 +312,8 @@ function escapeHtml(text) {
 // Load all keys
 async function loadKeys() {
     try {
-        const response = await fetch(`${API}/keys/list`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: currentToken })
+        const response = await makeAuthenticatedRequest(`${API}/keys/list`, {
+            method: 'POST'
         });
         
         const data = await response.json();
@@ -1182,13 +1178,9 @@ async function createApplication() {
     statusDiv.innerHTML = '<div style="color: #888888;">Creating application...</div>';
     
     try {
-        const response = await fetch(`${API}/applications`, {
+        const response = await makeAuthenticatedRequest(`${API}/applications`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
-                token: currentToken,
                 name: name
             })
         });
@@ -1978,12 +1970,8 @@ async function generateAdminKey() {
     }
     
     try {
-        const response = await fetch(`${API}/admin/keys/generate`, {
+        const response = await makeAuthenticatedRequest(`${API}/admin/keys/generate`, {
             method: 'POST',
-            headers: {
-                'Authorization': currentToken,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({ 
                 userId: adminKeyGenUser.id,
                 format, 
