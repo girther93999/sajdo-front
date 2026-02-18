@@ -459,10 +459,9 @@ async function addTime() {
     }
     
     try {
-        const response = await fetch(`${API}/keys/addtime`, {
+        const response = await makeAuthenticatedRequest(`${API}/keys/addtime`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: currentToken, key: currentModalKey, duration, amount })
+            body: JSON.stringify({ key: currentModalKey, duration, amount })
         });
         
         const data = await response.json();
@@ -494,10 +493,9 @@ async function resetHWID(key, buttonElement) {
     }
     
     try {
-        const response = await fetch(`${API}/keys/resethwid`, {
+        const response = await makeAuthenticatedRequest(`${API}/keys/resethwid`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: currentToken, key })
+            body: JSON.stringify({ key })
         });
         
         const data = await response.json();
@@ -1787,10 +1785,9 @@ async function updateUsername() {
     }
     
     try {
-        const response = await fetch(`${API}/account/update-username`, {
+        const response = await makeAuthenticatedRequest(`${API}/account/update-username`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: currentToken, newUsername: newUsername })
+            body: JSON.stringify({ newUsername: newUsername })
         });
         
         const data = await response.json();
@@ -1824,10 +1821,9 @@ async function updateEmail() {
     }
     
     try {
-        const response = await fetch(`${API}/account/update-email`, {
+        const response = await makeAuthenticatedRequest(`${API}/account/update-email`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: currentToken, newEmail: newEmail })
+            body: JSON.stringify({ newEmail: newEmail })
         });
         
         const data = await response.json();
@@ -1865,11 +1861,9 @@ async function updatePassword() {
     }
     
     try {
-        const response = await fetch(`${API}/account/update-password`, {
+        const response = await makeAuthenticatedRequest(`${API}/account/update-password`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                token: currentToken, 
                 currentPassword: currentPassword,
                 newPassword: newPassword 
             })
