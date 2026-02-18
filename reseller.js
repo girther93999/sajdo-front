@@ -1,5 +1,11 @@
 const API = 'https://answub-back.onrender.com/api';
 
+let currentModalKey = '';
+let currentToken = '';
+let currentUser = null;
+let currentBalance = 0;
+let allowedProducts = [];
+
 // Check authentication
 async function checkAuth() {
     currentToken = localStorage.getItem('artic_token');
