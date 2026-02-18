@@ -1,5 +1,4 @@
 const API = 'https://answub-back.onrender.com/api';
-let currentCSRFToken = null;
 
 let currentModalKey = '';
 let currentToken = '';
@@ -8,43 +7,6 @@ let keysCache = [];
 let selectedKeys = new Set();
 let applicationsCache = [];
 let currentApplication = null;
-
-// Get CSRF token
-async function getCSRFToken() {
-    try {
-        const response = await fetch(`${API}/auth/csrf-token`);
-        const data = await response.json();
-        if (data.success) {
-            currentCSRFToken = data.csrfToken;
-            return data.csrfToken;
-        }
-    } catch (error) {
-        console.error('Failed to get CSRF token:', error);
-    }
-    return null;
-}
-
-// Utility function to make authenticated requests with CSRF
-async function makeAuthenticatedRequest(url, options = {}) {
-    const headers = {
-        'Authorization': currentToken,
-        'Content-Type': 'application/json',
-        ...options.headers
-    };
-    
-    // Add CSRF token for state-changing requests
-    if (options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase())) {
-        const csrfToken = currentCSRFToken || await getCSRFToken();
-        if (csrfToken) {
-            headers['X-CSRF-Token'] = csrfToken;
-        }
-    }
-    
-    return fetch(url, {
-        ...options,
-        headers
-    });
-}
 
 // Security: Clear any keys from localStorage
 function clearLocalKeys() {
@@ -62,9 +24,6 @@ function clearLocalKeys() {
 async function checkAuth() {
     // Clear any local keys on page load (security)
     clearLocalKeys();
-    
-    // Get CSRF token
-    await getCSRFToken();
     
     currentToken = localStorage.getItem('artic_token');
     const userStr = localStorage.getItem('artic_user');
@@ -202,8 +161,10 @@ document.getElementById('duration')?.addEventListener('change', function() {
 // Load stats
 async function loadStats() {
     try {
-        const response = await makeAuthenticatedRequest(`${API}/keys/stats`, {
-            method: 'POST'
+        const response = await fetch(`${API}/keys/stats`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: currentToken })
         });
         
         const data = await response.json();
@@ -258,9 +219,10 @@ async function generateKey() {
     saveKeyPreferences(format, duration, amount);
     
     try {
-        const response = await makeAuthenticatedRequest(`${API}/keys/generate`, {
+        const response = await fetch(`${API}/keys/generate`, {
             method: 'POST',
-            body: JSON.stringify({ format, duration, amount })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: currentToken, format, duration, amount })
         });
         
         const data = await response.json();
@@ -312,8 +274,10 @@ function escapeHtml(text) {
 // Load all keys
 async function loadKeys() {
     try {
-        const response = await makeAuthenticatedRequest(`${API}/keys/list`, {
-            method: 'POST'
+        const response = await fetch(`${API}/keys/list`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: currentToken })
         });
         
         const data = await response.json();
@@ -459,9 +423,10 @@ async function addTime() {
     }
     
     try {
-        const response = await makeAuthenticatedRequest(`${API}/keys/addtime`, {
+        const response = await fetch(`${API}/keys/addtime`, {
             method: 'POST',
-            body: JSON.stringify({ key: currentModalKey, duration, amount })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: currentToken, key: currentModalKey, duration, amount })
         });
         
         const data = await response.json();
@@ -493,9 +458,10 @@ async function resetHWID(key, buttonElement) {
     }
     
     try {
-        const response = await makeAuthenticatedRequest(`${API}/keys/resethwid`, {
+        const response = await fetch(`${API}/keys/resethwid`, {
             method: 'POST',
-            body: JSON.stringify({ key })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: currentToken, key })
         });
         
         const data = await response.json();
@@ -1176,9 +1142,13 @@ async function createApplication() {
     statusDiv.innerHTML = '<div style="color: #888888;">Creating application...</div>';
     
     try {
-        const response = await makeAuthenticatedRequest(`${API}/applications`, {
+        const response = await fetch(`${API}/applications`, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
+                token: currentToken,
                 name: name
             })
         });
@@ -1785,9 +1755,10 @@ async function updateUsername() {
     }
     
     try {
-        const response = await makeAuthenticatedRequest(`${API}/account/update-username`, {
+        const response = await fetch(`${API}/account/update-username`, {
             method: 'POST',
-            body: JSON.stringify({ newUsername: newUsername })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: currentToken, newUsername: newUsername })
         });
         
         const data = await response.json();
@@ -1821,9 +1792,10 @@ async function updateEmail() {
     }
     
     try {
-        const response = await makeAuthenticatedRequest(`${API}/account/update-email`, {
+        const response = await fetch(`${API}/account/update-email`, {
             method: 'POST',
-            body: JSON.stringify({ newEmail: newEmail })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: currentToken, newEmail: newEmail })
         });
         
         const data = await response.json();
@@ -1861,9 +1833,11 @@ async function updatePassword() {
     }
     
     try {
-        const response = await makeAuthenticatedRequest(`${API}/account/update-password`, {
+        const response = await fetch(`${API}/account/update-password`, {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
+                token: currentToken, 
                 currentPassword: currentPassword,
                 newPassword: newPassword 
             })
@@ -1964,8 +1938,12 @@ async function generateAdminKey() {
     }
     
     try {
-        const response = await makeAuthenticatedRequest(`${API}/admin/keys/generate`, {
+        const response = await fetch(`${API}/admin/keys/generate`, {
             method: 'POST',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({ 
                 userId: adminKeyGenUser.id,
                 format, 

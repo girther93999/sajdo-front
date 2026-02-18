@@ -1,48 +1,7 @@
 const API = 'https://answub-back.onrender.com/api';
-let currentCSRFToken = null;
-
-// Get CSRF token
-async function getCSRFToken() {
-    try {
-        const response = await fetch(`${API}/auth/csrf-token`);
-        const data = await response.json();
-        if (data.success) {
-            currentCSRFToken = data.csrfToken;
-            return data.csrfToken;
-        }
-    } catch (error) {
-        console.error('Failed to get CSRF token:', error);
-    }
-    return null;
-}
-
-// Utility function to make authenticated requests with CSRF
-async function makeAuthenticatedRequest(url, options = {}) {
-    const headers = {
-        'Authorization': currentToken,
-        'Content-Type': 'application/json',
-        ...options.headers
-    };
-    
-    // Add CSRF token for state-changing requests
-    if (options.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase())) {
-        const csrfToken = currentCSRFToken || await getCSRFToken();
-        if (csrfToken) {
-            headers['X-CSRF-Token'] = csrfToken;
-        }
-    }
-    
-    return fetch(url, {
-        ...options,
-        headers
-    });
-}
 
 // Check authentication
 async function checkAuth() {
-    // Get CSRF token
-    await getCSRFToken();
-    
     currentToken = localStorage.getItem('artic_token');
     const userStr = localStorage.getItem('artic_user');
     
@@ -299,9 +258,11 @@ async function generateResellerKey() {
     }
     
     try {
-        const response = await makeAuthenticatedRequest(`${API}/reseller/keys/generate`, {
+        const response = await fetch(`${API}/reseller/keys/generate`, {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
+                token: currentToken, 
                 format, 
                 duration, 
                 amount,
