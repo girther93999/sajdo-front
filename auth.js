@@ -1,4 +1,23 @@
 const API = 'https://answub-back.onrender.com/api';
+let currentCSRFToken = null;
+
+// Get CSRF token
+async function getCSRFToken() {
+    try {
+        const response = await fetch(`${API}/auth/csrf-token`);
+        const data = await response.json();
+        if (data.success) {
+            currentCSRFToken = data.csrfToken;
+            return data.csrfToken;
+        }
+    } catch (error) {
+        console.error('Failed to get CSRF token:', error);
+    }
+    return null;
+}
+
+// Initialize CSRF token on page load
+document.addEventListener('DOMContentLoaded', getCSRFToken);
 
 function showRegister() {
     document.getElementById('login-form').classList.remove('active');
@@ -26,10 +45,20 @@ async function register() {
         return;
     }
     
+    // Get fresh CSRF token
+    const csrfToken = await getCSRFToken();
+    if (!csrfToken) {
+        alert('Security token error. Please try again.');
+        return;
+    }
+    
     try {
         const response = await fetch(`${API}/auth/register`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken
+            },
             body: JSON.stringify({ username, email, password, inviteCode })
         });
         
