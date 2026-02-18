@@ -1894,6 +1894,40 @@ async function deleteAccount() {
     }
 }
 
+// Reset user password (admin only)
+async function resetUserPassword(userId, username) {
+    const newPassword = prompt(`Enter new password for ${username}:`);
+    if (!newPassword) return;
+    
+    if (newPassword.length < 6 || newPassword.length > 100) {
+        alert('Password must be 6-100 characters');
+        return;
+    }
+    
+    if (!confirm(`Set new password for ${username}? This will change their login credentials.`)) return;
+    
+    try {
+        const response = await fetch(`${API}/admin/users/${userId}/reset-password`, {
+            method: 'POST',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ newPassword })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`Password for ${username} has been reset successfully!\n\nNew password: ${newPassword}\n\nPlease securely share this with the user.`);
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error resetting password');
+    }
+}
+
 // Admin functions
 async function loadAdminUsers() {
     const listDiv = document.getElementById('admin-users-list');
@@ -1917,13 +1951,14 @@ async function loadAdminUsers() {
             }
             
             let html = '<div class="admin-table-container"><table class="admin-table"><thead><tr>';
-            html += '<th>Username</th><th>Email</th><th>Keys</th><th>Created</th><th>Last Login</th><th>Last IP</th><th>Status</th><th>Actions</th>';
+            html += '<th>Username</th><th>Account ID</th><th>Email</th><th>Keys</th><th>Created</th><th>Last Login</th><th>Last IP</th><th>Status</th><th>Actions</th>';
             html += '</tr></thead><tbody>';
             
             data.users.forEach(user => {
                 const banned = user.banned ? '<span class="status status-expired">Banned</span>' : '<span class="status status-active">OK</span>';
                 html += `<tr>
                     <td><strong>${escapeHtml(user.username)}</strong></td>
+                    <td><code style="font-size: 0.75rem;">${escapeHtml(user.id)}</code></td>
                     <td>${escapeHtml(user.email)}</td>
                     <td>${user.keyCount}</td>
                     <td>${new Date(user.createdAt).toLocaleDateString()}</td>
@@ -1932,6 +1967,7 @@ async function loadAdminUsers() {
                     <td>${banned}</td>
                     <td style="display:flex; gap:6px; flex-wrap:wrap;">
                         <button class="btn btn-secondary" onclick="viewUserDetails('${user.id}')" title="View Details"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-warning" onclick="resetUserPassword('${user.id}', '${escapeHtml(user.username)}')" title="Reset Password"><i class="fas fa-key"></i></button>
                         <button class="btn btn-secondary" onclick="kickUser('${user.id}')" title="Kick (rotate token)"><i class="fas fa-sign-out-alt"></i></button>
                         <button class="btn ${user.banned ? 'btn-primary' : 'btn-danger'}" onclick="toggleBanUser('${user.id}', ${user.banned ? 'false' : 'true'})" title="${user.banned ? 'Unban' : 'Ban'}">
                             <i class="fas ${user.banned ? 'fa-unlock' : 'fa-ban'}"></i>
@@ -2009,6 +2045,14 @@ async function viewUserDetails(userId) {
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
+                    </div>
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                        <button class="btn btn-warning" onclick="resetUserPassword('${data.user.id}', '${escapeHtml(data.user.username)}')" title="Reset Password">
+                            <i class="fas fa-key"></i> Reset Password
+                        </button>
+                        <button class="btn btn-secondary" onclick="kickUser('${data.user.id}')" title="Kick (rotate token)">
+                            <i class="fas fa-sign-out-alt"></i> Kick User
+                        </button>
                     </div>
                     <div style="margin-top: 1rem; padding: 0.75rem; background: #161b22; border-radius: 6px; border-left: 3px solid #3fb950;">
                         <p style="color: #888888; font-size: 0.875rem; margin: 0;">
