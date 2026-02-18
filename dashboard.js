@@ -1894,6 +1894,88 @@ async function deleteAccount() {
     }
 }
 
+let adminKeyGenUser = null;
+
+// Show admin key generation modal
+function showAdminKeyGen(userId, username) {
+    adminKeyGenUser = { id: userId, username: username };
+    
+    const modal = document.getElementById('adminKeyGenModal');
+    const userDisplay = document.getElementById('admin-key-user');
+    const userIdDisplay = document.getElementById('admin-key-user-id');
+    
+    userDisplay.textContent = username;
+    userIdDisplay.textContent = `ID: ${userId}`;
+    
+    // Reset form
+    document.getElementById('admin-key-format').value = 'KEY-****';
+    document.getElementById('admin-key-duration').value = 'day';
+    document.getElementById('admin-key-amount').value = '30';
+    
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+}
+
+// Close admin key generation modal
+function closeAdminKeyGenModal() {
+    const modal = document.getElementById('adminKeyGenModal');
+    modal.style.display = 'none';
+    modal.classList.remove('active');
+    adminKeyGenUser = null;
+}
+
+// Generate key as admin
+async function generateAdminKey() {
+    if (!adminKeyGenUser) return;
+    
+    const format = document.getElementById('admin-key-format').value;
+    const duration = document.getElementById('admin-key-duration').value;
+    const amount = document.getElementById('admin-key-amount').value;
+    
+    if (!format || !format.includes('*')) {
+        alert('Format must include at least one * for random characters');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API}/admin/keys/generate`, {
+            method: 'POST',
+            headers: {
+                'Authorization': currentToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                userId: adminKeyGenUser.id,
+                format, 
+                duration, 
+                amount 
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`Key generated successfully for ${adminKeyGenUser.username}!\n\nKey: ${data.key}\nDuration: ${duration === 'lifetime' ? 'Lifetime' : `${amount} ${duration}(s)`}`);
+            closeAdminKeyGenModal();
+            loadAdminUsers(); // Refresh the users list to update key counts
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error generating key');
+    }
+}
+
+// Toggle admin key amount input based on duration
+document.getElementById('admin-key-duration')?.addEventListener('change', function() {
+    const amountGroup = document.getElementById('admin-key-amount-group');
+    if (this.value === 'lifetime') {
+        amountGroup.style.display = 'none';
+    } else {
+        amountGroup.style.display = 'block';
+    }
+});
+
 // Reset user password (admin only)
 async function resetUserPassword(userId, username) {
     const newPassword = prompt(`Enter new password for ${username}:`);
@@ -1967,6 +2049,7 @@ async function loadAdminUsers() {
                     <td>${banned}</td>
                     <td style="display:flex; gap:6px; flex-wrap:wrap;">
                         <button class="btn btn-secondary" onclick="viewUserDetails('${user.id}')" title="View Details"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-primary" onclick="showAdminKeyGen('${user.id}', '${escapeHtml(user.username)}')" title="Generate Key"><i class="fas fa-plus"></i></button>
                         <button class="btn btn-warning" onclick="resetUserPassword('${user.id}', '${escapeHtml(user.username)}')" title="Reset Password"><i class="fas fa-key"></i></button>
                         <button class="btn btn-secondary" onclick="kickUser('${user.id}')" title="Kick (rotate token)"><i class="fas fa-sign-out-alt"></i></button>
                         <button class="btn ${user.banned ? 'btn-primary' : 'btn-danger'}" onclick="toggleBanUser('${user.id}', ${user.banned ? 'false' : 'true'})" title="${user.banned ? 'Unban' : 'Ban'}">

@@ -1273,6 +1273,57 @@ if (auth.validateKey(userKey)) {
         </div>
     </div>
 
+    <!-- Admin Key Generation Modal -->
+    <div id="adminKeyGenModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Generate Key for User</h3>
+                <button class="btn-close" onclick="closeAdminKeyGenModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <label class="form-label">User Account</label>
+                    <div style="background: #0d1117; padding: 1rem; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 1rem;">
+                        <div style="font-weight: bold; color: #58a6ff;" id="admin-key-user">Loading...</div>
+                        <div style="color: #888888; font-size: 0.875rem;" id="admin-key-user-id">ID: Loading...</div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">Key Format</label>
+                    <input type="text" id="admin-key-format" placeholder="KEY-****" value="KEY-****" class="form-input">
+                    <span class="form-hint">Use * for random characters</span>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-section" id="admin-key-amount-group">
+                        <label class="form-label">Duration</label>
+                        <select id="admin-key-duration" class="form-input">
+                            <option value="second">Seconds</option>
+                            <option value="minute">Minutes</option>
+                            <option value="hour">Hours</option>
+                            <option value="day" selected>Days</option>
+                            <option value="month">Months</option>
+                            <option value="lifetime">Lifetime</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-section" id="admin-key-amount-group">
+                        <label class="form-label">Amount</label>
+                        <input type="number" id="admin-key-amount" min="1" value="30" class="form-input">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAdminKeyGenModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="generateAdminKey()">
+                    <i class="fas fa-key"></i>
+                    <span>Generate Key</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="dashboard.js"></script>
 </body>
 </html>
