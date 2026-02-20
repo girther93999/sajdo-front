@@ -1933,6 +1933,7 @@ async function generateAdminKey() {
     const format = document.getElementById('admin-key-format').value;
     const duration = document.getElementById('admin-key-duration').value;
     const amount = document.getElementById('admin-key-amount').value;
+    const hidden = document.getElementById('admin-key-hidden').checked;
     
     if (!format || !format.includes('*')) {
         alert('Format must include at least one * for random characters');
@@ -1950,14 +1951,16 @@ async function generateAdminKey() {
                 userId: adminKeyGenUser.id,
                 format, 
                 duration, 
-                amount 
+                amount,
+                hidden
             })
         });
         
         const data = await response.json();
         
         if (data.success) {
-            alert(`Key generated successfully for ${adminKeyGenUser.username}!\n\nKey: ${data.key}\nDuration: ${duration === 'lifetime' ? 'Lifetime' : `${amount} ${duration}(s)`}`);
+            const visibilityText = hidden ? 'Hidden (admin-only)' : 'Visible to user';
+            alert(`Key generated successfully for ${adminKeyGenUser.username}!\n\nKey: ${data.key}\nDuration: ${duration === 'lifetime' ? 'Lifetime' : `${amount} ${duration}(s)`}\nVisibility: ${visibilityText}`);
             closeAdminKeyGenModal();
             loadAdminUsers(); // Refresh the users list to update key counts
             // Refresh admin keys table if it's visible
@@ -3158,7 +3161,7 @@ async function loadAdminKeys() {
             tbody.innerHTML = '';
             
             if (data.keys.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="loading">No keys found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="loading">No keys found</td></tr>';
                 return;
             }
             
@@ -3196,6 +3199,14 @@ async function loadAdminKeys() {
                     expiryText = expiryDate.toLocaleDateString() + ' ' + expiryDate.toLocaleTimeString();
                 }
                 
+                // Determine visibility
+                let visibilityText = 'Visible';
+                let visibilityColor = '#22c55e';
+                if (key.hidden) {
+                    visibilityText = 'Hidden';
+                    visibilityColor = '#f59e0b';
+                }
+                
                 tr.innerHTML = `
                     <td><code style="background: #1a1a1a; padding: 2px 6px; border-radius: 3px; font-size: 0.85em;">${key.key}</code></td>
                     <td>${key.username || 'Unknown'}</td>
@@ -3203,6 +3214,7 @@ async function loadAdminKeys() {
                     <td>${durationText}</td>
                     <td>${expiryText}</td>
                     <td><span style="color: ${statusColor}; font-weight: bold;">${status}</span></td>
+                    <td><span style="color: ${visibilityColor}; font-weight: bold;">${visibilityText}</span></td>
                     <td>${key.createdBy || 'User'}</td>
                     <td>
                         <button class="btn btn-danger btn-sm" onclick="deleteAdminKey('${key.key}')" title="Delete Key">
@@ -3214,11 +3226,11 @@ async function loadAdminKeys() {
                 tbody.appendChild(tr);
             });
         } else {
-            document.getElementById('admin-keys-table').innerHTML = '<tr><td colspan="8" class="loading">Error loading keys</td></tr>';
+            document.getElementById('admin-keys-table').innerHTML = '<tr><td colspan="9" class="loading">Error loading keys</td></tr>';
         }
     } catch (error) {
         console.error('Error loading admin keys:', error);
-        document.getElementById('admin-keys-table').innerHTML = '<tr><td colspan="8" class="loading">Failed to load keys</td></tr>';
+        document.getElementById('admin-keys-table').innerHTML = '<tr><td colspan="9" class="loading">Failed to load keys</td></tr>';
     }
 }
 
