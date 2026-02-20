@@ -3145,6 +3145,31 @@ async function updateResellerProducts(userId) {
     }
 }
 
+// Test filtering logic
+async function testFiltering() {
+    try {
+        const response = await fetch(`${API}/test-filter`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token: currentToken })
+        });
+        
+        const data = await response.json();
+        console.log('Filter test results:', data);
+        
+        if (data.success) {
+            alert(`Filter Test Results:\n\nUser: ${data.username}\nAll Keys: ${data.allKeysCount}\nFiltered Keys: ${data.filteredKeysCount}\n\nCheck console for details`);
+        } else {
+            alert('Test failed: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Test error:', error);
+        alert('Test failed');
+    }
+}
+
 // Admin Keys Management
 async function loadAdminKeys() {
     try {
