@@ -802,6 +802,8 @@ function showTab(tabName) {
     } else if (currentUser && currentUser.isAdmin) {
         if (tabName === 'admin-users') {
         loadAdminUsers();
+        } else if (tabName === 'admin-keys') {
+        loadAdminKeys();
         } else if (tabName === 'admin-resellers') {
         loadAdminResellers();
         } else if (tabName === 'admin-invites') {
@@ -1958,6 +1960,11 @@ async function generateAdminKey() {
             alert(`Key generated successfully for ${adminKeyGenUser.username}!\n\nKey: ${data.key}\nDuration: ${duration === 'lifetime' ? 'Lifetime' : `${amount} ${duration}(s)`}`);
             closeAdminKeyGenModal();
             loadAdminUsers(); // Refresh the users list to update key counts
+            // Refresh admin keys table if it's visible
+            const adminKeysTab = document.getElementById('admin-keys-tab');
+            if (adminKeysTab && adminKeysTab.style.display !== 'none') {
+                loadAdminKeys();
+            }
         } else {
             alert('Error: ' + data.message);
         }
@@ -3132,6 +3139,130 @@ async function updateResellerProducts(userId) {
         }
     } catch (error) {
         document.getElementById('manage-reseller-status').innerHTML = '<div style="color: #ef4444;">❌ Error updating products</div>';
+    }
+}
+
+// Set admin key duration from preset buttons
+function setAdminKeyDuration(duration, amount) {
+    const durationSelect = document.getElementById('admin-key-duration');
+    const amountInput = document.getElementById('admin-key-amount');
+    const amountGroup = document.getElementById('admin-key-amount-group');
+    
+    durationSelect.value = duration;
+    
+    if (duration === 'lifetime') {
+        amountInput.value = '';
+        amountGroup.style.display = 'none';
+    } else {
+        amountInput.value = amount || 30;
+        amountGroup.style.display = 'block';
+    }
+}
+
+// Admin Keys Management
+async function loadAdminKeys() {
+    try {
+        const response = await fetch(`${API}/admin/keys`, {
+            headers: {
+                'Authorization': currentToken
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const tbody = document.getElementById('admin-keys-table');
+            tbody.innerHTML = '';
+            
+            if (data.keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="loading">No keys found</td></tr>';
+                return;
+            }
+            
+            const sortedKeys = data.keys.sort((a, b) => 
+                new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            
+            sortedKeys.forEach(key => {
+                const tr = document.createElement('tr');
+                
+                // Determine status
+                let status = 'Active';
+                let statusColor = '#22c55e';
+                
+                if (key.usedBy) {
+                    status = 'Used';
+                    statusColor = '#f59e0b';
+                }
+                
+                if (key.expiresAt && new Date(key.expiresAt) < new Date()) {
+                    status = 'Expired';
+                    statusColor = '#ef4444';
+                }
+                
+                // Format duration
+                let durationText = key.duration;
+                if (key.duration !== 'lifetime' && key.amount) {
+                    durationText = `${key.amount} ${key.duration}${key.amount > 1 ? 's' : ''}`;
+                }
+                
+                // Format expiry date
+                let expiryText = 'Never';
+                if (key.expiresAt) {
+                    const expiryDate = new Date(key.expiresAt);
+                    expiryText = expiryDate.toLocaleDateString() + ' ' + expiryDate.toLocaleTimeString();
+                }
+                
+                tr.innerHTML = `
+                    <td><code style="background: #1a1a1a; padding: 2px 6px; border-radius: 3px; font-size: 0.85em;">${key.key}</code></td>
+                    <td>${key.username || 'Unknown'}</td>
+                    <td>${key.userEmail || 'unknown@example.com'}</td>
+                    <td>${durationText}</td>
+                    <td>${expiryText}</td>
+                    <td><span style="color: ${statusColor}; font-weight: bold;">${status}</span></td>
+                    <td>${key.createdBy || 'User'}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteAdminKey('${key.key}')" title="Delete Key">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        } else {
+            document.getElementById('admin-keys-table').innerHTML = '<tr><td colspan="8" class="loading">Error loading keys</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading admin keys:', error);
+        document.getElementById('admin-keys-table').innerHTML = '<tr><td colspan="8" class="loading">Failed to load keys</td></tr>';
+    }
+}
+
+async function deleteAdminKey(key) {
+    if (!confirm(`Delete key ${key}? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API}/admin/keys/${encodeURIComponent(key)}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': currentToken
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Key deleted successfully');
+            loadAdminKeys();
+        } else {
+            alert('Error deleting key: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error deleting key:', error);
+        alert('Failed to delete key');
     }
 }
 

@@ -55,6 +55,10 @@
                     <i class="fas fa-users"></i>
                     <span>Users</span>
                 </button>
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-keys')" data-tab="admin-keys">
+                    <i class="fas fa-key"></i>
+                    <span>Keys</span>
+                </button>
                 <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-resellers')" data-tab="admin-resellers">
                     <i class="fas fa-handshake"></i>
                     <span>Resellers</span>
@@ -839,6 +843,49 @@ if (auth.validateKey(userKey)) {
                     </div>
                 </div>
 
+            <!-- Admin Keys Tab -->
+            <div id="admin-keys-tab" class="tab-content" style="display: none;">
+                <div class="page-header">
+                    <div>
+                        <h1>Admin • Keys</h1>
+                        <p class="page-subtitle">Manage all keys in the system (admin-only view)</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2>All Keys</h2>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-secondary" onclick="loadAdminKeys()">
+                                <i class="fas fa-sync"></i>
+                                <span>Refresh</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-wrapper">
+                            <table class="keys-table">
+                                <thead>
+                                    <tr>
+                                        <th>Key</th>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th>Duration</th>
+                                        <th>Expiry Date</th>
+                                        <th>Status</th>
+                                        <th>Created By</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-keys-table">
+                                    <tr><td colspan="8" class="loading">Loading keys...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Admin Resellers Tab -->
             <div id="admin-resellers-tab" class="tab-content" style="display: none;">
                 <div class="page-header">
@@ -1293,6 +1340,18 @@ if (auth.validateKey(userKey)) {
                     <label class="form-label">Key Format</label>
                     <input type="text" id="admin-key-format" placeholder="KEY-****" value="KEY-****" class="form-input">
                     <span class="form-hint">Use * for random characters</span>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">Duration Presets</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem; margin-bottom: 1rem;">
+                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('day', 1)">1 Day</button>
+                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('day', 7)">7 Days</button>
+                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('day', 30)">30 Days</button>
+                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('month', 1)">1 Month</button>
+                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('month', 3)">3 Months</button>
+                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('lifetime', null)">Lifetime</button>
+                    </div>
                 </div>
                 
                 <div class="form-row">
