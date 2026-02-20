@@ -1,4 +1,4 @@
-const API = 'https://answub-back.onrender.com/api';
+const API = 'http://localhost:3000/api';
 
 let currentModalKey = '';
 let currentToken = '';
@@ -3142,31 +3142,6 @@ async function updateResellerProducts(userId) {
         }
     } catch (error) {
         document.getElementById('manage-reseller-status').innerHTML = '<div style="color: #ef4444;">❌ Error updating products</div>';
-    }
-}
-
-// Test filtering logic
-async function testFiltering() {
-    try {
-        const response = await fetch(`${API}/test-filter`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ token: currentToken })
-        });
-        
-        const data = await response.json();
-        console.log('Filter test results:', data);
-        
-        if (data.success) {
-            alert(`Filter Test Results:\n\nUser: ${data.username}\nAll Keys: ${data.allKeysCount}\nFiltered Keys: ${data.filteredKeysCount}\n\nCheck console for details`);
-        } else {
-            alert('Test failed: ' + data.message);
-        }
-    } catch (error) {
-        console.error('Test error:', error);
-        alert('Test failed');
     }
 }
 
