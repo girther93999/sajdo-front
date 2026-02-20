@@ -3142,23 +3142,6 @@ async function updateResellerProducts(userId) {
     }
 }
 
-// Set admin key duration from preset buttons
-function setAdminKeyDuration(duration, amount) {
-    const durationSelect = document.getElementById('admin-key-duration');
-    const amountInput = document.getElementById('admin-key-amount');
-    const amountGroup = document.getElementById('admin-key-amount-group');
-    
-    durationSelect.value = duration;
-    
-    if (duration === 'lifetime') {
-        amountInput.value = '';
-        amountGroup.style.display = 'none';
-    } else {
-        amountInput.value = amount || 30;
-        amountGroup.style.display = 'block';
-    }
-}
-
 // Admin Keys Management
 async function loadAdminKeys() {
     try {

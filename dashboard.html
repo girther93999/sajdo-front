@@ -1342,18 +1342,6 @@ if (auth.validateKey(userKey)) {
                     <span class="form-hint">Use * for random characters</span>
                 </div>
                 
-                <div class="form-section">
-                    <label class="form-label">Duration Presets</label>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem; margin-bottom: 1rem;">
-                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('day', 1)">1 Day</button>
-                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('day', 7)">7 Days</button>
-                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('day', 30)">30 Days</button>
-                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('month', 1)">1 Month</button>
-                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('month', 3)">3 Months</button>
-                        <button type="button" class="btn btn-secondary" onclick="setAdminKeyDuration('lifetime', null)">Lifetime</button>
-                    </div>
-                </div>
-                
                 <div class="form-row">
                     <div class="form-section" id="admin-key-duration-group">
                         <label class="form-label">Duration</label>
@@ -1362,7 +1350,9 @@ if (auth.validateKey(userKey)) {
                             <option value="minute">Minutes</option>
                             <option value="hour">Hours</option>
                             <option value="day" selected>Days</option>
+                            <option value="week">Weeks</option>
                             <option value="month">Months</option>
+                            <option value="year">Years</option>
                             <option value="lifetime">Lifetime</option>
                         </select>
                     </div>
@@ -1371,6 +1361,14 @@ if (auth.validateKey(userKey)) {
                         <label class="form-label">Amount</label>
                         <input type="number" id="admin-key-amount" min="1" value="30" class="form-input">
                     </div>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">
+                        <input type="checkbox" id="admin-key-hidden" checked>
+                        <span style="margin-left: 8px;">Hide from user (admin-only key)</span>
+                    </label>
+                    <span class="form-hint">Hidden keys are only visible to admins, not to regular users</span>
                 </div>
             </div>
             <div class="modal-footer">
