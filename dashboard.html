@@ -307,33 +307,17 @@
                                             <i class="fas fa-copy"></i>
                                         </button>
                                     </div>
-                                    <pre id="app-integration-code"><code>#include &lt;iostream&gt;
-#include &lt;string&gt;
-#include "auth_client.h"
+                                    <pre id="app-integration-code"><code>// Your Application Credentials
+std::string ACCOUNT_ID = "<span id="app-code-account-id">YOUR_ACCOUNT_ID</span>";
+std::string API_TOKEN = "<span id="app-code-api-token">YOUR_API_TOKEN</span>";
 
-int main()
-{
-    std::string ACCOUNT_ID = "<span id="app-code-account-id">YOUR_ACCOUNT_ID</span>";     
-    std::string API_TOKEN = "<span id="app-code-api-token">YOUR_API_TOKEN</span>";  
-    
-    SecureConnection auth("https://answub-back.onrender.com");  
-    auth.setCredentials(ACCOUNT_ID, API_TOKEN);
-    
-    std::cout &lt;&lt; "Enter license key: ";
-    std::string key;
-    std::getline(std::cin, key);
-    
-    if (auth.validateKey(key)) {
-        std::cout &lt;&lt; "\n✓ LOGIN SUCCESS!\n";
-        std::cout &lt;&lt; "Welcome! Starting your application...\n";
-    } else {
-        std::cout &lt;&lt; "\n✗ LOGIN FAILED: " &lt;&lt; auth.getLastError() &lt;&lt; "\n";
-        return 1;
-    }
-    
-    std::cout &lt;&lt; "\nPress Enter to exit...";
-    std::cin.get();
-    return 0;
+// Set credentials (REQUIRED - keys only work with correct account)
+SecureConnection auth("https://answub-back.onrender.com");
+auth.setCredentials(ACCOUNT_ID, API_TOKEN);
+
+// Now validate keys (only YOUR keys will work!)
+if (auth.validateKey(userKey)) {
+    std::cout &lt;&lt; "Success!\n";
 }</code></pre>
                                 </div>
                                 <div class="info-box">
@@ -459,33 +443,17 @@ int main()
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
-                                <pre id="integration-code"><code>#include &lt;iostream&gt;
-#include &lt;string&gt;
-#include "auth_client.h"
+                                <pre id="integration-code"><code>// Your Account Credentials
+std::string ACCOUNT_ID = "<span id="code-account-id">YOUR_ACCOUNT_ID</span>";
+std::string API_TOKEN = "<span id="code-api-token">YOUR_API_TOKEN</span>";
 
-int main()
-{
-    std::string ACCOUNT_ID = "<span id="code-account-id">YOUR_ACCOUNT_ID</span>";     
-    std::string API_TOKEN = "<span id="code-api-token">YOUR_API_TOKEN</span>";  
-    
-    SecureConnection auth("https://answub-back.onrender.com");  
-    auth.setCredentials(ACCOUNT_ID, API_TOKEN);
-    
-    std::cout &lt;&lt; "Enter license key: ";
-    std::string key;
-    std::getline(std::cin, key);
-    
-    if (auth.validateKey(key)) {
-        std::cout &lt;&lt; "\n✓ LOGIN SUCCESS!\n";
-        std::cout &lt;&lt; "Welcome! Starting your application...\n";
-    } else {
-        std::cout &lt;&lt; "\n✗ LOGIN FAILED: " &lt;&lt; auth.getLastError() &lt;&lt; "\n";
-        return 1;
-    }
-    
-    std::cout &lt;&lt; "\nPress Enter to exit...";
-    std::cin.get();
-    return 0;
+// Set credentials (REQUIRED - keys only work with correct account)
+SecureConnection auth("https://answub-back.onrender.com");
+auth.setCredentials(ACCOUNT_ID, API_TOKEN);
+
+// Now validate keys (only YOUR keys will work!)
+if (auth.validateKey(userKey)) {
+    std::cout &lt;&lt; "Success!\n";
 }</code></pre>
                             </div>
                             <div class="info-box">
@@ -815,33 +783,17 @@ int main()
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
-                                <pre id="integration-code"><code>#include &lt;iostream&gt;
-#include &lt;string&gt;
-#include "auth_client.h"
+                                <pre id="integration-code"><code>// Your Account Credentials
+std::string ACCOUNT_ID = "<span id="code-account-id">YOUR_ACCOUNT_ID</span>";
+std::string API_TOKEN = "<span id="code-api-token">YOUR_API_TOKEN</span>";
 
-int main()
-{
-    std::string ACCOUNT_ID = "<span id="code-account-id">YOUR_ACCOUNT_ID</span>";     
-    std::string API_TOKEN = "<span id="code-api-token">YOUR_API_TOKEN</span>";  
-    
-    SecureConnection auth("https://answub-back.onrender.com");  
-    auth.setCredentials(ACCOUNT_ID, API_TOKEN);
-    
-    std::cout &lt;&lt; "Enter license key: ";
-    std::string key;
-    std::getline(std::cin, key);
-    
-    if (auth.validateKey(key)) {
-        std::cout &lt;&lt; "\n✓ LOGIN SUCCESS!\n";
-        std::cout &lt;&lt; "Welcome! Starting your application...\n";
-    } else {
-        std::cout &lt;&lt; "\n✗ LOGIN FAILED: " &lt;&lt; auth.getLastError() &lt;&lt; "\n";
-        return 1;
-    }
-    
-    std::cout &lt;&lt; "\nPress Enter to exit...";
-    std::cin.get();
-    return 0;
+// Set credentials (REQUIRED - keys only work with correct account)
+SecureConnection auth("https://answub-back.onrender.com");
+auth.setCredentials(ACCOUNT_ID, API_TOKEN);
+
+// Now validate keys (only YOUR keys will work!)
+if (auth.validateKey(userKey)) {
+    std::cout &lt;&lt; "Success!\n";
 }</code></pre>
                             </div>
                             <div class="info-box">
