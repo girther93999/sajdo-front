@@ -312,7 +312,7 @@ std::string ACCOUNT_ID = "<span id="app-code-account-id">YOUR_ACCOUNT_ID</span>"
 std::string API_TOKEN = "<span id="app-code-api-token">YOUR_API_TOKEN</span>";
 
 // Set credentials (REQUIRED - keys only work with correct account)
-AuthClient auth("https://answub-back.onrender.com");
+SecureConnection auth("https://answub-back.onrender.com");
 auth.setCredentials(ACCOUNT_ID, API_TOKEN);
 
 // Now validate keys (only YOUR keys will work!)
@@ -345,7 +345,7 @@ if (auth.validateKey(userKey)) {
                                     </div>
                                     <div class="file-info">
                                         <div class="file-name">auth_client.h</div>
-                                        <div class="file-desc">Header file with AuthClient class</div>
+                                        <div class="file-desc">Header file with SecureConnection class</div>
                                     </div>
                                     <div class="file-actions">
                                         <button class="btn btn-secondary" onclick="showFile('auth_client.h')"
@@ -448,7 +448,7 @@ std::string ACCOUNT_ID = "<span id="code-account-id">YOUR_ACCOUNT_ID</span>";
 std::string API_TOKEN = "<span id="code-api-token">YOUR_API_TOKEN</span>";
 
 // Set credentials (REQUIRED - keys only work with correct account)
-AuthClient auth("https://answub-back.onrender.com");
+SecureConnection auth("https://answub-back.onrender.com");
 auth.setCredentials(ACCOUNT_ID, API_TOKEN);
 
 // Now validate keys (only YOUR keys will work!)
@@ -481,7 +481,7 @@ if (auth.validateKey(userKey)) {
                                 </div>
                                 <div class="file-info">
                                     <div class="file-name">auth_client.h</div>
-                                    <div class="file-desc">Header file with AuthClient class</div>
+                                    <div class="file-desc">Header file with SecureConnection class</div>
                                 </div>
                                 <div class="file-actions">
                                     <button class="btn btn-secondary" onclick="showFile('auth_client.h')"
@@ -788,7 +788,7 @@ std::string ACCOUNT_ID = "<span id="code-account-id">YOUR_ACCOUNT_ID</span>";
 std::string API_TOKEN = "<span id="code-api-token">YOUR_API_TOKEN</span>";
 
 // Set credentials (REQUIRED - keys only work with correct account)
-AuthClient auth("https://answub-back.onrender.com");
+SecureConnection auth("https://answub-back.onrender.com");
 auth.setCredentials(ACCOUNT_ID, API_TOKEN);
 
 // Now validate keys (only YOUR keys will work!)
@@ -821,7 +821,7 @@ if (auth.validateKey(userKey)) {
                                 </div>
                                 <div class="file-info">
                                     <div class="file-name">auth_client.h</div>
-                                    <div class="file-desc">Header file with AuthClient class</div>
+                                    <div class="file-desc">Header file with SecureConnection class</div>
                                 </div>
                                 <div class="file-actions">
                                     <button class="btn btn-secondary" onclick="showFile('auth_client.h')"
