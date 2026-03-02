@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <nav class="navbar">
         <div class="nav-brand">
@@ -38,41 +40,49 @@
                     <i class="fas fa-cog"></i>
                     <span>Applications</span>
                 </button>
-                <button class="nav-item user-nav" onclick="showTab('generate')" data-tab="generate">
+                <button class="nav-item user-nav" onclick="showTab('generate')" data-tab="generate"
+                    style="display:none;">
                     <i class="fas fa-plus"></i>
                     <span>Key Gen</span>
                 </button>
-                <button class="nav-item user-nav active" onclick="showTab('keys')" data-tab="keys">
+                <button class="nav-item user-nav active" onclick="showTab('keys')" data-tab="keys"
+                    style="display:none;">
                     <i class="fas fa-key"></i>
                     <span>Keys</span>
                 </button>
-                <button class="nav-item user-nav" onclick="showTab('integration')" data-tab="integration">
+                <button class="nav-item user-nav" onclick="showTab('integration')" data-tab="integration"
+                    style="display:none;">
                     <i class="fas fa-code"></i>
                     <span>Integration</span>
                 </button>
                 <!-- Admin-only nav items -->
-                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-users')" data-tab="admin-users">
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-users')"
+                    data-tab="admin-users">
                     <i class="fas fa-users"></i>
                     <span>Users</span>
                 </button>
-                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-keys')" data-tab="admin-keys">
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-keys')"
+                    data-tab="admin-keys">
                     <i class="fas fa-key"></i>
                     <span>Keys</span>
                 </button>
-                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-resellers')" data-tab="admin-resellers">
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-resellers')"
+                    data-tab="admin-resellers">
                     <i class="fas fa-handshake"></i>
                     <span>Resellers</span>
                 </button>
-                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-invites')" data-tab="admin-invites">
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-invites')"
+                    data-tab="admin-invites">
                     <i class="fas fa-ticket-alt"></i>
                     <span>Invites</span>
                 </button>
-                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-updates')" data-tab="admin-updates">
+                <button class="nav-item admin-only" style="display:none;" onclick="showTab('admin-updates')"
+                    data-tab="admin-updates">
                     <i class="fas fa-upload"></i>
                     <span>Updates</span>
                 </button>
             </nav>
-            
+
             <!-- Application Sidebar Nav (shown when viewing application) -->
             <nav class="sidebar-nav" id="app-sidebar-nav" style="display: none;">
                 <button class="nav-item app-nav active" onclick="showAppTab('keys')" data-tab="app-keys">
@@ -131,14 +141,16 @@
                     <div class="key-list-header">
                         <h2>Key List</h2>
                         <div class="search-container">
-                            <input type="text" id="app-key-search" class="search-input" placeholder="Search keys..." oninput="filterAppKeys()" onkeyup="filterAppKeys()" onfocus="clearSearchPlaceholder()">
+                            <input type="text" id="app-key-search" class="search-input" placeholder="Search keys..."
+                                oninput="filterAppKeys()" onkeyup="filterAppKeys()" onfocus="clearSearchPlaceholder()">
                             <i class="fas fa-search search-icon"></i>
                         </div>
                     </div>
 
                     <div class="card">
                         <div class="card-body">
-                            <div class="table-actions-bar" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:12px;">
+                            <div class="table-actions-bar"
+                                style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:12px;">
                                 <button class="btn btn-secondary" onclick="deleteSelectedAppKeys()">
                                     <i class="fas fa-trash"></i>
                                     <span>Delete Selected</span>
@@ -151,7 +163,8 @@
                                     <i class="fas fa-ban"></i>
                                     <span>Delete All</span>
                                 </button>
-                                <div id="app-keys-selection-status" style="align-self:center; color:#888; font-size:12px; margin-left:4px;"></div>
+                                <div id="app-keys-selection-status"
+                                    style="align-self:center; color:#888; font-size:12px; margin-left:4px;"></div>
                             </div>
                             <div class="table-wrapper">
                                 <table class="keys-table">
@@ -159,7 +172,8 @@
                                         <tr>
                                             <th style="width:36px; text-align:center;">
                                                 <label class="custom-checkbox">
-                                                    <input type="checkbox" id="app-keys-select-all" onclick="toggleSelectAllAppKeys(this.checked)">
+                                                    <input type="checkbox" id="app-keys-select-all"
+                                                        onclick="toggleSelectAllAppKeys(this.checked)">
                                                     <span class="checkmark"></span>
                                                 </label>
                                             </th>
@@ -172,7 +186,9 @@
                                         </tr>
                                     </thead>
                                     <tbody id="app-keys-table">
-                                        <tr><td colspan="7" class="loading">Loading keys...</td></tr>
+                                        <tr>
+                                            <td colspan="7" class="loading">Loading keys...</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -193,10 +209,11 @@
                         <div class="card-body">
                             <div class="form-section">
                                 <label class="form-label">Key Format</label>
-                                <input type="text" id="app-format" placeholder="KEY-****" value="KEY-****" class="form-input">
+                                <input type="text" id="app-format" placeholder="KEY-****" value="KEY-****"
+                                    class="form-input">
                                 <span class="form-hint">Use * for random characters</span>
                             </div>
-                            
+
                             <div class="form-row">
                                 <div class="form-section">
                                     <label class="form-label">Duration</label>
@@ -209,18 +226,18 @@
                                         <option value="lifetime">Lifetime</option>
                                     </select>
                                 </div>
-                                
+
                                 <div class="form-section" id="app-amount-group">
                                     <label class="form-label">Amount</label>
                                     <input type="number" id="app-amount" min="1" value="30" class="form-input">
                                 </div>
                             </div>
-                            
+
                             <button class="btn btn-primary btn-large" onclick="generateAppKey()">
                                 <i class="fas fa-key"></i>
                                 <span>Generate Key</span>
                             </button>
-                            
+
                             <div id="app-generated-result" class="result-box" style="display: none;">
                                 <div class="result-header">
                                     <i class="fas fa-check-circle"></i>
@@ -257,7 +274,8 @@
                                     </div>
                                     <div class="credential-value">
                                         <code id="app-account-id"></code>
-                                        <button class="btn-icon" onclick="copyCredential('app-account-id')" title="Copy">
+                                        <button class="btn-icon" onclick="copyCredential('app-account-id')"
+                                            title="Copy">
                                             <i class="fas fa-copy"></i>
                                         </button>
                                     </div>
@@ -275,7 +293,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="integration-guide">
                                 <h3>
                                     <i class="fas fa-book"></i>
@@ -305,7 +323,8 @@ if (auth.validateKey(userKey)) {
                                 <div class="info-box">
                                     <i class="fas fa-info-circle"></i>
                                     <div>
-                                        <strong>Important:</strong> Keys will ONLY work with the account that created them. Keys lock to the first computer (HWID) that uses them.
+                                        <strong>Important:</strong> Keys will ONLY work with the account that created
+                                        them. Keys lock to the first computer (HWID) that uses them.
                                     </div>
                                 </div>
                             </div>
@@ -317,7 +336,8 @@ if (auth.validateKey(userKey)) {
                             <h2>Download Files</h2>
                         </div>
                         <div class="card-body">
-                            <p class="form-hint" style="margin-bottom: 1.5rem;">Download the required files for integration:</p>
+                            <p class="form-hint" style="margin-bottom: 1.5rem;">Download the required files for
+                                integration:</p>
                             <div class="files-grid">
                                 <div class="file-card">
                                     <div class="file-icon">
@@ -328,7 +348,8 @@ if (auth.validateKey(userKey)) {
                                         <div class="file-desc">Header file with AuthClient class</div>
                                     </div>
                                     <div class="file-actions">
-                                        <button class="btn btn-secondary" onclick="showFile('auth_client.h')" title="View Code">
+                                        <button class="btn btn-secondary" onclick="showFile('auth_client.h')"
+                                            title="View Code">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <button class="btn btn-primary" onclick="downloadFile('auth_client.h')">
@@ -346,7 +367,8 @@ if (auth.validateKey(userKey)) {
                                         <div class="file-desc">Implementation file</div>
                                     </div>
                                     <div class="file-actions">
-                                        <button class="btn btn-secondary" onclick="showFile('auth_client.cpp')" title="View Code">
+                                        <button class="btn btn-secondary" onclick="showFile('auth_client.cpp')"
+                                            title="View Code">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <button class="btn btn-primary" onclick="downloadFile('auth_client.cpp')">
@@ -407,7 +429,7 @@ if (auth.validateKey(userKey)) {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="integration-guide">
                             <h3>
                                 <i class="fas fa-book"></i>
@@ -437,7 +459,8 @@ if (auth.validateKey(userKey)) {
                             <div class="info-box">
                                 <i class="fas fa-info-circle"></i>
                                 <div>
-                                    <strong>Important:</strong> Keys will ONLY work with the account that created them. Keys lock to the first computer (HWID) that uses them.
+                                    <strong>Important:</strong> Keys will ONLY work with the account that created them.
+                                    Keys lock to the first computer (HWID) that uses them.
                                 </div>
                             </div>
                         </div>
@@ -449,7 +472,8 @@ if (auth.validateKey(userKey)) {
                         <h2>Download Files</h2>
                     </div>
                     <div class="card-body">
-                        <p class="form-hint" style="margin-bottom: 1.5rem;">Download the required files for integration:</p>
+                        <p class="form-hint" style="margin-bottom: 1.5rem;">Download the required files for integration:
+                        </p>
                         <div class="files-grid">
                             <div class="file-card">
                                 <div class="file-icon">
@@ -460,7 +484,8 @@ if (auth.validateKey(userKey)) {
                                     <div class="file-desc">Header file with AuthClient class</div>
                                 </div>
                                 <div class="file-actions">
-                                    <button class="btn btn-secondary" onclick="showFile('auth_client.h')" title="View Code">
+                                    <button class="btn btn-secondary" onclick="showFile('auth_client.h')"
+                                        title="View Code">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <button class="btn btn-primary" onclick="downloadFile('auth_client.h')">
@@ -478,7 +503,8 @@ if (auth.validateKey(userKey)) {
                                     <div class="file-desc">Implementation file</div>
                                 </div>
                                 <div class="file-actions">
-                                    <button class="btn btn-secondary" onclick="showFile('auth_client.cpp')" title="View Code">
+                                    <button class="btn btn-secondary" onclick="showFile('auth_client.cpp')"
+                                        title="View Code">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <button class="btn btn-primary" onclick="downloadFile('auth_client.cpp')">
@@ -498,7 +524,8 @@ if (auth.validateKey(userKey)) {
                 <div class="page-header">
                     <div>
                         <h1 class="slide-in-left">Dashboard</h1>
-                        <p class="page-subtitle slide-in-left-delay">Welcome back, <span id="overview-username"></span></p>
+                        <p class="page-subtitle slide-in-left-delay">Welcome back, <span id="overview-username"></span>
+                        </p>
                     </div>
                 </div>
 
@@ -541,7 +568,7 @@ if (auth.validateKey(userKey)) {
                     </div>
                 </div>
 
-                <div class="quick-actions-section">
+                <div class="quick-actions-section" style="display:none;">
                     <h2 class="section-title">Quick Actions</h2>
                     <div class="actions-grid">
                         <button class="action-card" onclick="showTab('generate')">
@@ -583,14 +610,16 @@ if (auth.validateKey(userKey)) {
                 <div class="key-list-header">
                     <h2>Key List</h2>
                     <div class="search-container">
-                        <input type="text" id="key-search" class="search-input" placeholder="Search keys..." oninput="filterKeys()" onkeyup="filterKeys()" onfocus="clearSearchPlaceholder()">
+                        <input type="text" id="key-search" class="search-input" placeholder="Search keys..."
+                            oninput="filterKeys()" onkeyup="filterKeys()" onfocus="clearSearchPlaceholder()">
                         <i class="fas fa-search search-icon"></i>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-body">
-                        <div class="table-actions-bar" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:12px;">
+                        <div class="table-actions-bar"
+                            style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:12px;">
                             <button class="btn btn-secondary" onclick="deleteSelectedKeys()">
                                 <i class="fas fa-trash"></i>
                                 <span>Delete Selected</span>
@@ -603,7 +632,8 @@ if (auth.validateKey(userKey)) {
                                 <i class="fas fa-ban"></i>
                                 <span>Delete All</span>
                             </button>
-                            <div id="keys-selection-status" style="align-self:center; color:#888; font-size:12px; margin-left:4px;"></div>
+                            <div id="keys-selection-status"
+                                style="align-self:center; color:#888; font-size:12px; margin-left:4px;"></div>
                         </div>
                         <div class="table-wrapper">
                             <table class="keys-table">
@@ -611,7 +641,8 @@ if (auth.validateKey(userKey)) {
                                     <tr>
                                         <th style="width:36px; text-align:center;">
                                             <label class="custom-checkbox">
-                                                <input type="checkbox" id="keys-select-all" onclick="toggleSelectAllKeys(this.checked)">
+                                                <input type="checkbox" id="keys-select-all"
+                                                    onclick="toggleSelectAllKeys(this.checked)">
                                                 <span class="checkmark"></span>
                                             </label>
                                         </th>
@@ -624,7 +655,9 @@ if (auth.validateKey(userKey)) {
                                     </tr>
                                 </thead>
                                 <tbody id="keys-table">
-                                    <tr><td colspan="7" class="loading">Loading keys...</td></tr>
+                                    <tr>
+                                        <td colspan="7" class="loading">Loading keys...</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -648,7 +681,7 @@ if (auth.validateKey(userKey)) {
                             <input type="text" id="format" placeholder="KEY-****" value="KEY-****" class="form-input">
                             <span class="form-hint">Use * for random characters</span>
                         </div>
-                        
+
                         <div class="form-row">
                             <div class="form-section">
                                 <label class="form-label">Duration</label>
@@ -661,18 +694,18 @@ if (auth.validateKey(userKey)) {
                                     <option value="lifetime">Lifetime</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-section" id="amount-group">
                                 <label class="form-label">Amount</label>
                                 <input type="number" id="amount" min="1" value="30" class="form-input">
                             </div>
                         </div>
-                        
+
                         <button class="btn btn-primary btn-large" onclick="generateKey()">
                             <i class="fas fa-key"></i>
                             <span>Generate Key</span>
                         </button>
-                        
+
                         <div id="generated-result" class="result-box" style="display: none;">
                             <div class="result-header">
                                 <i class="fas fa-check-circle"></i>
@@ -736,7 +769,7 @@ if (auth.validateKey(userKey)) {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="integration-guide">
                             <h3>
                                 <i class="fas fa-book"></i>
@@ -766,7 +799,8 @@ if (auth.validateKey(userKey)) {
                             <div class="info-box">
                                 <i class="fas fa-info-circle"></i>
                                 <div>
-                                    <strong>Important:</strong> Keys will ONLY work with the account that created them. Keys lock to the first computer (HWID) that uses them.
+                                    <strong>Important:</strong> Keys will ONLY work with the account that created them.
+                                    Keys lock to the first computer (HWID) that uses them.
                                 </div>
                             </div>
                         </div>
@@ -778,7 +812,8 @@ if (auth.validateKey(userKey)) {
                         <h2>Download Files</h2>
                     </div>
                     <div class="card-body">
-                        <p class="form-hint" style="margin-bottom: 1.5rem;">Download the required files for integration:</p>
+                        <p class="form-hint" style="margin-bottom: 1.5rem;">Download the required files for integration:
+                        </p>
                         <div class="files-grid">
                             <div class="file-card">
                                 <div class="file-icon">
@@ -789,7 +824,8 @@ if (auth.validateKey(userKey)) {
                                     <div class="file-desc">Header file with AuthClient class</div>
                                 </div>
                                 <div class="file-actions">
-                                    <button class="btn btn-secondary" onclick="showFile('auth_client.h')" title="View Code">
+                                    <button class="btn btn-secondary" onclick="showFile('auth_client.h')"
+                                        title="View Code">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <button class="btn btn-primary" onclick="downloadFile('auth_client.h')">
@@ -807,7 +843,8 @@ if (auth.validateKey(userKey)) {
                                     <div class="file-desc">Implementation file</div>
                                 </div>
                                 <div class="file-actions">
-                                    <button class="btn btn-secondary" onclick="showFile('auth_client.cpp')" title="View Code">
+                                    <button class="btn btn-secondary" onclick="showFile('auth_client.cpp')"
+                                        title="View Code">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <button class="btn btn-primary" onclick="downloadFile('auth_client.cpp')">
@@ -840,8 +877,8 @@ if (auth.validateKey(userKey)) {
                     <div class="card-body">
                         <div id="admin-users-list" class="loading">Loading users...</div>
                     </div>
-                    </div>
                 </div>
+            </div>
 
             <!-- Admin Keys Tab -->
             <div id="admin-keys-tab" class="tab-content" style="display: none;">
@@ -851,7 +888,7 @@ if (auth.validateKey(userKey)) {
                         <p class="page-subtitle">Manage all keys in the system (admin-only view)</p>
                     </div>
                 </div>
-                
+
                 <div class="card">
                     <div class="card-header">
                         <h2>All Keys</h2>
@@ -879,7 +916,9 @@ if (auth.validateKey(userKey)) {
                                     </tr>
                                 </thead>
                                 <tbody id="admin-keys-table">
-                                    <tr><td colspan="9" class="loading">Loading keys...</td></tr>
+                                    <tr>
+                                        <td colspan="9" class="loading">Loading keys...</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -906,8 +945,8 @@ if (auth.validateKey(userKey)) {
                     <div class="card-body">
                         <div id="admin-resellers-list" class="loading">Loading resellers...</div>
                     </div>
-                    </div>
                 </div>
+            </div>
 
             <!-- Admin Invites Tab -->
             <div id="admin-invites-tab" class="tab-content" style="display: none;">
@@ -948,18 +987,24 @@ if (auth.validateKey(userKey)) {
                     <div class="card-body">
                         <div class="form-section">
                             <label class="form-label">Version Number</label>
-                            <input type="text" id="update-version-cheat" class="form-input" placeholder="e.g., 1.0.0, 2.1.3" required>
-                            <span class="form-hint">Enter a unique version number. Clients will only update if their version differs.</span>
+                            <input type="text" id="update-version-cheat" class="form-input"
+                                placeholder="e.g., 1.0.0, 2.1.3" required>
+                            <span class="form-hint">Enter a unique version number. Clients will only update if their
+                                version differs.</span>
                         </div>
                         <div class="form-section" style="margin-top: 1rem;">
                             <label class="form-label">What's Changed / Update Notes</label>
-                            <textarea id="update-changelog-cheat" class="form-input" rows="4" placeholder="e.g., Fixed bugs, Added new features, Performance improvements..." style="resize: vertical; min-height: 80px;"></textarea>
-                            <span class="form-hint">Describe what changed in this update. This will be sent to Discord.</span>
+                            <textarea id="update-changelog-cheat" class="form-input" rows="4"
+                                placeholder="e.g., Fixed bugs, Added new features, Performance improvements..."
+                                style="resize: vertical; min-height: 80px;"></textarea>
+                            <span class="form-hint">Describe what changed in this update. This will be sent to
+                                Discord.</span>
                         </div>
                         <div class="form-section" style="margin-top: 1rem;">
                             <label class="form-label">Select File (.exe)</label>
                             <input type="file" id="update-file-cheat" accept=".exe" class="form-input">
-                            <span class="form-hint">Upload the latest version. Users will auto-update on next launch.</span>
+                            <span class="form-hint">Upload the latest version. Users will auto-update on next
+                                launch.</span>
                         </div>
                         <button class="btn btn-primary" onclick="uploadUpdate('cheat')">
                             <i class="fas fa-upload"></i>
@@ -977,18 +1022,24 @@ if (auth.validateKey(userKey)) {
                     <div class="card-body">
                         <div class="form-section">
                             <label class="form-label">Version Number</label>
-                            <input type="text" id="update-version-spoofer" class="form-input" placeholder="e.g., 0.0.1, 0.1.0" required>
-                            <span class="form-hint">Enter a unique version number. Clients will only update if their version differs.</span>
+                            <input type="text" id="update-version-spoofer" class="form-input"
+                                placeholder="e.g., 0.0.1, 0.1.0" required>
+                            <span class="form-hint">Enter a unique version number. Clients will only update if their
+                                version differs.</span>
                         </div>
                         <div class="form-section" style="margin-top: 1rem;">
                             <label class="form-label">What's Changed / Update Notes</label>
-                            <textarea id="update-changelog-spoofer" class="form-input" rows="4" placeholder="e.g., Fixed bugs, Added new features, Performance improvements..." style="resize: vertical; min-height: 80px;"></textarea>
-                            <span class="form-hint">Describe what changed in this update. This will be sent to Discord.</span>
+                            <textarea id="update-changelog-spoofer" class="form-input" rows="4"
+                                placeholder="e.g., Fixed bugs, Added new features, Performance improvements..."
+                                style="resize: vertical; min-height: 80px;"></textarea>
+                            <span class="form-hint">Describe what changed in this update. This will be sent to
+                                Discord.</span>
                         </div>
                         <div class="form-section" style="margin-top: 1rem;">
                             <label class="form-label">Select File (.exe)</label>
                             <input type="file" id="update-file-spoofer" accept=".exe" class="form-input">
-                            <span class="form-hint">Upload the latest version. Users will auto-update on next launch.</span>
+                            <span class="form-hint">Upload the latest version. Users will auto-update on next
+                                launch.</span>
                         </div>
                         <button class="btn btn-primary" onclick="uploadUpdate('spoofer')">
                             <i class="fas fa-upload"></i>
@@ -1057,18 +1108,21 @@ if (auth.validateKey(userKey)) {
                         </div>
                         <div class="form-section">
                             <label class="form-label">Password</label>
-                            <input type="password" id="new-user-password" placeholder="Enter password (min 6 chars)" class="form-input">
+                            <input type="password" id="new-user-password" placeholder="Enter password (min 6 chars)"
+                                class="form-input">
                         </div>
                         <div id="reseller-fields" style="display: none;">
                             <div class="form-section">
                                 <label class="form-label">Initial Balance ($)</label>
-                                <input type="number" id="new-user-balance" placeholder="0.00" step="0.01" min="0" value="0" class="form-input">
+                                <input type="number" id="new-user-balance" placeholder="0.00" step="0.01" min="0"
+                                    value="0" class="form-input">
                             </div>
                             <div class="form-section">
                                 <label class="form-label">Allowed Products</label>
                                 <div style="margin-top: 0.5rem;">
                                     <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                        <input type="checkbox" id="user-product-private" checked style="margin-right: 0.5rem;">
+                                        <input type="checkbox" id="user-product-private" checked
+                                            style="margin-right: 0.5rem;">
                                         <span>Private</span>
                                     </label>
                                     <label style="display: flex; align-items: center;">
@@ -1099,7 +1153,8 @@ if (auth.validateKey(userKey)) {
                     <div class="modal-body">
                         <div class="form-section">
                             <label class="form-label">Username</label>
-                            <input type="text" id="new-reseller-username" placeholder="Enter username" class="form-input">
+                            <input type="text" id="new-reseller-username" placeholder="Enter username"
+                                class="form-input">
                         </div>
                         <div class="form-section">
                             <label class="form-label">Email</label>
@@ -1107,17 +1162,20 @@ if (auth.validateKey(userKey)) {
                         </div>
                         <div class="form-section">
                             <label class="form-label">Password</label>
-                            <input type="password" id="new-reseller-password" placeholder="Enter password (min 6 chars)" class="form-input">
+                            <input type="password" id="new-reseller-password" placeholder="Enter password (min 6 chars)"
+                                class="form-input">
                         </div>
                         <div class="form-section">
                             <label class="form-label">Initial Balance ($)</label>
-                            <input type="number" id="new-reseller-balance" placeholder="0.00" step="0.01" min="0" value="0" class="form-input">
+                            <input type="number" id="new-reseller-balance" placeholder="0.00" step="0.01" min="0"
+                                value="0" class="form-input">
                         </div>
                         <div class="form-section">
                             <label class="form-label">Allowed Products</label>
                             <div style="margin-top: 0.5rem;">
                                 <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                    <input type="checkbox" id="reseller-product-private" checked style="margin-right: 0.5rem;">
+                                    <input type="checkbox" id="reseller-product-private" checked
+                                        style="margin-right: 0.5rem;">
                                     <span>Private</span>
                                 </label>
                                 <label style="display: flex; align-items: center;">
@@ -1177,8 +1235,10 @@ if (auth.validateKey(userKey)) {
                     <div class="modal-body">
                         <div class="form-section">
                             <label class="form-label">Application Name</label>
-                            <input type="text" id="new-app-name" placeholder="Enter application name" class="form-input" maxlength="50">
-                            <span class="form-hint">Choose a name for your application (e.g., "My Game", "Project Alpha")</span>
+                            <input type="text" id="new-app-name" placeholder="Enter application name" class="form-input"
+                                maxlength="50">
+                            <span class="form-hint">Choose a name for your application (e.g., "My Game", "Project
+                                Alpha")</span>
                         </div>
                         <button class="btn btn-primary" onclick="createApplication()">
                             <i class="fas fa-plus"></i>
@@ -1208,9 +1268,11 @@ if (auth.validateKey(userKey)) {
                             <div class="form-row">
                                 <div class="form-section" style="flex: 1;">
                                     <label class="form-label">New Username</label>
-                                    <input type="text" id="new-username" placeholder="Enter new username" class="form-input">
+                                    <input type="text" id="new-username" placeholder="Enter new username"
+                                        class="form-input">
                                 </div>
-                                <button class="btn btn-primary" onclick="updateUsername()" style="align-self: flex-end;">
+                                <button class="btn btn-primary" onclick="updateUsername()"
+                                    style="align-self: flex-end;">
                                     <i class="fas fa-save"></i>
                                     <span>Update</span>
                                 </button>
@@ -1246,11 +1308,13 @@ if (auth.validateKey(userKey)) {
                             <div class="form-column">
                                 <div class="form-section">
                                     <label class="form-label">Current Password</label>
-                                    <input type="password" id="current-password" placeholder="Enter current password" class="form-input">
+                                    <input type="password" id="current-password" placeholder="Enter current password"
+                                        class="form-input">
                                 </div>
                                 <div class="form-section">
                                     <label class="form-label">New Password</label>
-                                    <input type="password" id="new-password" placeholder="Enter new password (min 6 characters)" class="form-input">
+                                    <input type="password" id="new-password"
+                                        placeholder="Enter new password (min 6 characters)" class="form-input">
                                 </div>
                                 <button class="btn btn-primary" onclick="updatePassword()">
                                     <i class="fas fa-save"></i>
@@ -1266,11 +1330,13 @@ if (auth.validateKey(userKey)) {
                                 <i class="fas fa-exclamation-triangle"></i>
                                 <h3>Delete Account</h3>
                             </div>
-                            <p>This will permanently delete your account and all your license keys. This action cannot be undone.</p>
+                            <p>This will permanently delete your account and all your license keys. This action cannot
+                                be undone.</p>
                             <div class="form-row">
                                 <div class="form-section" style="flex: 1;">
                                     <label class="form-label">Confirm Password</label>
-                                    <input type="password" id="delete-password" placeholder="Enter your password to confirm" class="form-input">
+                                    <input type="password" id="delete-password"
+                                        placeholder="Enter your password to confirm" class="form-input">
                                 </div>
                                 <button class="btn btn-danger" onclick="deleteAccount()" style="align-self: flex-end;">
                                     <i class="fas fa-trash"></i>
@@ -1331,18 +1397,19 @@ if (auth.validateKey(userKey)) {
             <div class="modal-body">
                 <div class="form-section">
                     <label class="form-label">User Account</label>
-                    <div style="background: #0d1117; padding: 1rem; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 1rem;">
+                    <div
+                        style="background: #0d1117; padding: 1rem; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 1rem;">
                         <div style="font-weight: bold; color: #58a6ff;" id="admin-key-user">Loading...</div>
                         <div style="color: #888888; font-size: 0.875rem;" id="admin-key-user-id">ID: Loading...</div>
                     </div>
                 </div>
-                
+
                 <div class="form-section">
                     <label class="form-label">Key Format</label>
                     <input type="text" id="admin-key-format" placeholder="KEY-****" value="KEY-****" class="form-input">
                     <span class="form-hint">Use * for random characters</span>
                 </div>
-                
+
                 <div class="form-row">
                     <div class="form-section" id="admin-key-duration-group">
                         <label class="form-label">Duration</label>
@@ -1357,13 +1424,13 @@ if (auth.validateKey(userKey)) {
                             <option value="lifetime">Lifetime</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-section" id="admin-key-amount-group">
                         <label class="form-label">Amount</label>
                         <input type="number" id="admin-key-amount" min="1" value="30" class="form-input">
                     </div>
                 </div>
-                
+
                 <div class="form-section">
                     <label class="form-label">
                         <input type="checkbox" id="admin-key-hidden" checked>
@@ -1384,5 +1451,5 @@ if (auth.validateKey(userKey)) {
 
     <script src="dashboard.js"></script>
 </body>
-</html>
 
+</html>

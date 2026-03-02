@@ -24,16 +24,16 @@ function clearLocalKeys() {
 async function checkAuth() {
     // Clear any local keys on page load (security)
     clearLocalKeys();
-    
+
     currentToken = localStorage.getItem('artic_token');
     const userStr = localStorage.getItem('artic_user');
-    
+
     if (!currentToken || !userStr) {
         // No auth, redirect to login
         window.location.href = 'index.html';
         return false;
     }
-    
+
     try {
         currentUser = JSON.parse(userStr);
     } catch (e) {
@@ -43,7 +43,7 @@ async function checkAuth() {
         window.location.href = 'index.html';
         return false;
     }
-    
+
     // Verify token is still valid
     try {
         const response = await fetch(`${API}/auth/verify`, {
@@ -51,15 +51,15 @@ async function checkAuth() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: currentToken })
         });
-        
+
         const data = await response.json();
-        
+
         // Check if user is a reseller and redirect
         if (data.success && data.accountType === 'reseller') {
             window.location.href = 'reseller.html';
             return false;
         }
-        
+
         if (!data.success) {
             // Token invalid - show helpful message
             if (data.message) {
@@ -77,20 +77,20 @@ async function checkAuth() {
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ token: backupData.token })
                                 })
-                                .then(res => res.json())
-                                .then(verifyData => {
-                                    if (verifyData.success) {
-                                        // Backup token still valid - restore session
+                                    .then(res => res.json())
+                                    .then(verifyData => {
+                                        if (verifyData.success) {
+                                            // Backup token still valid - restore session
                                             localStorage.setItem('artic_token', backupData.token);
                                             localStorage.setItem('artic_user', JSON.stringify(verifyData.user));
-                                        window.location.reload();
-                                    } else {
+                                            window.location.reload();
+                                        } else {
+                                            alert(`Your session expired. Your account "${backupData.username}" may still exist. Please try logging in again.`);
+                                        }
+                                    })
+                                    .catch(() => {
                                         alert(`Your session expired. Your account "${backupData.username}" may still exist. Please try logging in again.`);
-                                    }
-                                })
-                                .catch(() => {
-                                    alert(`Your session expired. Your account "${backupData.username}" may still exist. Please try logging in again.`);
-                                });
+                                    });
                                 return false; // Don't logout yet, wait for restore attempt
                             } else {
                                 alert(`Your session expired. Your account "${backupData.username}" may still exist. Please try logging in again.`);
@@ -108,27 +108,27 @@ async function checkAuth() {
             logout();
             return false;
         }
-        
+
         const usernameDisplay = document.getElementById('username-display');
         const overviewUsername = document.getElementById('overview-username');
         const sidebarUsername = document.getElementById('sidebar-username');
         if (usernameDisplay) usernameDisplay.textContent = currentUser.username;
         if (overviewUsername) overviewUsername.textContent = currentUser.username;
         if (sidebarUsername) sidebarUsername.textContent = currentUser.username;
-        
+
         // Display account credentials (check if elements exist)
         const accountIdEl = document.getElementById('account-id');
         const apiTokenEl = document.getElementById('api-token');
         const accountUsernameEl = document.getElementById('account-username');
         const codeAccountId = document.getElementById('code-account-id');
         const codeApiToken = document.getElementById('code-api-token');
-        
+
         if (accountIdEl) accountIdEl.textContent = currentUser.id;
         if (apiTokenEl) apiTokenEl.textContent = currentToken;
         if (accountUsernameEl) accountUsernameEl.textContent = currentUser.username;
         if (codeAccountId) codeAccountId.textContent = currentUser.id;
         if (codeApiToken) codeApiToken.textContent = currentToken;
-        
+
         return true;
     } catch (error) {
         console.error('Auth check failed:', error);
@@ -149,7 +149,7 @@ function logout() {
 }
 
 // Toggle amount input based on duration
-document.getElementById('duration')?.addEventListener('change', function() {
+document.getElementById('duration')?.addEventListener('change', function () {
     const amountGroup = document.getElementById('amount-group');
     if (this.value === 'lifetime') {
         amountGroup.style.display = 'none';
@@ -166,9 +166,9 @@ async function loadStats() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: currentToken })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             document.getElementById('stat-total').textContent = data.stats.total;
             document.getElementById('stat-active').textContent = data.stats.active;
@@ -185,7 +185,7 @@ function loadKeyPreferences() {
     const savedFormat = localStorage.getItem('artic_key_format');
     const savedDuration = localStorage.getItem('artic_key_duration');
     const savedAmount = localStorage.getItem('artic_key_amount');
-    
+
     if (savedFormat) {
         document.getElementById('format').value = savedFormat;
     }
@@ -209,34 +209,34 @@ async function generateKey() {
     const format = document.getElementById('format').value;
     const duration = document.getElementById('duration').value;
     const amount = document.getElementById('amount').value;
-    
+
     if (!format || !format.includes('*')) {
         alert('Format must include at least one * for random characters');
         return;
     }
-    
+
     // Save preferences for next time
     saveKeyPreferences(format, duration, amount);
-    
+
     try {
         const response = await fetch(`${API}/keys/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: currentToken, format, duration, amount })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             document.getElementById('generated-key').textContent = data.key;
             document.getElementById('generated-result').style.display = 'block';
-            
+
             let info = `Duration: ${duration === 'lifetime' ? 'Lifetime' : `${amount} ${duration}(s)`}`;
             if (data.data.expiresAt) {
                 info += ` | Expires: ${new Date(data.data.expiresAt).toLocaleString()}`;
             }
             document.getElementById('key-info').textContent = info;
-            
+
             loadKeys();
             loadStats();
         } else {
@@ -279,32 +279,32 @@ async function loadKeys() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: currentToken })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             keysCache = data.keys || [];
             selectedKeys.clear();
             const tbody = document.getElementById('keys-table');
             tbody.innerHTML = '';
-            
+
             if (data.keys.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="loading">No keys generated yet</td></tr>';
                 updateSelectionStatus();
                 updateSelectAllCheckbox();
                 return;
             }
-            
-            const sortedKeys = data.keys.sort((a, b) => 
+
+            const sortedKeys = data.keys.sort((a, b) =>
                 new Date(b.createdAt) - new Date(a.createdAt)
             );
-            
+
             sortedKeys.forEach(key => {
                 const tr = document.createElement('tr');
-                
+
                 let status = 'Active';
                 let statusClass = 'status-active';
-                
+
                 if (key.expiresAt) {
                     const expiry = new Date(key.expiresAt);
                     if (expiry < new Date()) {
@@ -312,12 +312,12 @@ async function loadKeys() {
                         statusClass = 'status-expired';
                     }
                 }
-                
+
                 if (key.usedBy) {
                     status = 'Used';
                     statusClass = 'status-used';
                 }
-                
+
                 // Calculate expiry in hours
                 let expiryText = 'Never';
                 if (key.expiresAt) {
@@ -332,22 +332,22 @@ async function loadKeys() {
                     }
                 } else if (key.amount && key.duration) {
                     // Calculate from duration if available
-                    const durationMap = { 'day': 24, 'week': 168, 'month': 720, 'hour': 1, 'minute': 1/60, 'second': 1/3600 };
+                    const durationMap = { 'day': 24, 'week': 168, 'month': 720, 'hour': 1, 'minute': 1 / 60, 'second': 1 / 3600 };
                     const hours = (key.amount || 0) * (durationMap[key.duration] || 0);
                     if (hours > 0) {
                         expiryText = `${Math.floor(hours)}h`;
                     }
                 }
-                
+
                 // HWID display
                 let hwidDisplay = key.hwid || 'None';
-                
+
                 // Frozen status
                 const frozen = key.frozen ? 'Yes' : 'No';
-                
+
                 // Created By
                 const createdBy = key.createdBy || currentUser?.username || 'N/A';
-                
+
                 tr.innerHTML = `
                     <td style="text-align:center;">
                         <label class="custom-checkbox">
@@ -377,7 +377,7 @@ async function loadKeys() {
                         </div>
                     </td>
                 `;
-                
+
                 tbody.appendChild(tr);
             });
 
@@ -416,21 +416,21 @@ function closeAddTimeModal() {
 async function addTime() {
     const duration = document.getElementById('modal-duration').value;
     const amount = document.getElementById('modal-amount').value;
-    
+
     if (!amount || amount < 1) {
         alert('Please enter a valid amount');
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/keys/addtime`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: currentToken, key: currentModalKey, duration, amount })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             alert(`Added ${amount} ${duration}(s) to key`);
             closeAddTimeModal();
@@ -448,7 +448,7 @@ async function resetHWID(key, buttonElement) {
     if (!confirm(`Reset HWID for key: ${key}?`)) {
         return;
     }
-    
+
     // Add loading animation
     if (buttonElement) {
         buttonElement.classList.add('action-loading');
@@ -456,23 +456,23 @@ async function resetHWID(key, buttonElement) {
         const originalHTML = buttonElement.innerHTML;
         buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Resetting...</span>';
     }
-    
+
     try {
         const response = await fetch(`${API}/keys/resethwid`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: currentToken, key })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             // Success animation
             if (buttonElement) {
                 buttonElement.classList.remove('action-loading');
                 buttonElement.classList.add('action-success');
                 buttonElement.innerHTML = '<i class="fas fa-check"></i><span>Reset!</span>';
-                
+
                 // Animate row
                 const row = buttonElement.closest('tr');
                 if (row) {
@@ -481,7 +481,7 @@ async function resetHWID(key, buttonElement) {
                         row.classList.remove('row-success');
                     }, 2000);
                 }
-                
+
                 setTimeout(() => {
                     buttonElement.classList.remove('action-success');
                     buttonElement.innerHTML = '<i class="fas fa-unlock-alt"></i><span>Reset HWID</span>';
@@ -505,7 +505,7 @@ async function resetHWID(key, buttonElement) {
                 buttonElement.classList.remove('action-loading');
                 buttonElement.classList.add('action-error');
                 buttonElement.innerHTML = '<i class="fas fa-times"></i><span>Error</span>';
-                
+
                 setTimeout(() => {
                     buttonElement.classList.remove('action-error');
                     buttonElement.innerHTML = '<i class="fas fa-unlock-alt"></i><span>Reset HWID</span>';
@@ -519,7 +519,7 @@ async function resetHWID(key, buttonElement) {
             buttonElement.classList.remove('action-loading');
             buttonElement.classList.add('action-error');
             buttonElement.innerHTML = '<i class="fas fa-times"></i><span>Error</span>';
-            
+
             setTimeout(() => {
                 buttonElement.classList.remove('action-error');
                 buttonElement.innerHTML = '<i class="fas fa-unlock-alt"></i><span>Reset HWID</span>';
@@ -535,7 +535,7 @@ async function deleteKey(key, buttonElement) {
     if (!confirm(`Delete key: ${key}?`)) {
         return;
     }
-    
+
     // Add loading animation
     if (buttonElement) {
         buttonElement.classList.add('action-loading');
@@ -543,7 +543,7 @@ async function deleteKey(key, buttonElement) {
         const originalHTML = buttonElement.innerHTML;
         buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Deleting...</span>';
     }
-    
+
     const ok = await deleteKeyApi(key);
     if (ok) {
         // Success animation - fade out row
@@ -556,13 +556,13 @@ async function deleteKey(key, buttonElement) {
                     row.style.opacity = '0';
                     row.style.transform = 'translateX(-20px)';
                     row.style.maxHeight = row.offsetHeight + 'px';
-                    
+
                     setTimeout(() => {
                         row.style.maxHeight = '0';
                         row.style.padding = '0';
                         row.style.margin = '0';
                         row.style.border = 'none';
-                        
+
                         setTimeout(() => {
                             if (currentApplication) {
                                 loadAppKeys();
@@ -595,7 +595,7 @@ async function deleteKey(key, buttonElement) {
             buttonElement.classList.remove('action-loading');
             buttonElement.classList.add('action-error');
             buttonElement.innerHTML = '<i class="fas fa-times"></i><span>Error</span>';
-            
+
             setTimeout(() => {
                 buttonElement.classList.remove('action-error');
                 buttonElement.innerHTML = '<i class="fas fa-trash"></i><span>Delete</span>';
@@ -674,7 +674,7 @@ async function deleteSelectedKeys() {
     }
     if (!confirm(`Delete ${selectedKeys.size} selected key(s)?`)) return;
     await bulkDeleteKeys(Array.from(selectedKeys));
-        }
+}
 
 async function deleteExpiredKeys() {
     const now = new Date();
@@ -707,22 +707,22 @@ async function bulkDeleteKeys(keys) {
 }
 
 // Close modal when clicking outside
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('addTimeModal');
     if (modal) {
         // Ensure modal is hidden on page load
         modal.style.display = 'none';
         modal.classList.remove('active');
-        
+
         // Close when clicking outside
-        modal.addEventListener('click', function(e) {
+        modal.addEventListener('click', function (e) {
             if (e.target === modal) {
                 closeAddTimeModal();
             }
         });
-        
+
         // Close on Escape key
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && modal.classList.contains('active')) {
                 closeAddTimeModal();
             }
@@ -759,27 +759,27 @@ function showTab(tabName) {
     if (tabName === 'generate') {
         loadKeyPreferences();
     }
-    
+
     // Hide application detail view if showing
     const appDetailTab = document.getElementById('application-detail-tab');
     if (appDetailTab) {
         appDetailTab.style.display = 'none';
         appDetailTab.classList.remove('active');
     }
-    
+
     // Hide all tabs and reset display
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
         tab.style.display = 'none';
     });
-    
+
     // Show selected tab
     const tabElement = document.getElementById(tabName + '-tab');
     if (tabElement) {
         tabElement.classList.add('active');
         tabElement.style.display = 'block';
     }
-    
+
     // Update nav items
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
@@ -787,7 +787,7 @@ function showTab(tabName) {
             item.classList.add('active');
         }
     });
-    
+
     // Load data if needed
     if (tabName === 'keys') {
         loadKeys();
@@ -801,18 +801,18 @@ function showTab(tabName) {
         // Integration tab - credentials are already loaded in checkAuth
     } else if (currentUser && currentUser.isAdmin) {
         if (tabName === 'admin-users') {
-        loadAdminUsers();
+            loadAdminUsers();
         } else if (tabName === 'admin-keys') {
-        loadAdminKeys();
+            loadAdminKeys();
         } else if (tabName === 'admin-resellers') {
-        loadAdminResellers();
+            loadAdminResellers();
         } else if (tabName === 'admin-invites') {
-        loadAdminInvites();
+            loadAdminInvites();
         } else if (tabName === 'admin-updates') {
-        checkUpdateInfo();
+            checkUpdateInfo();
         }
     }
-    
+
     // Close user menu if open
     const dropdown = document.getElementById('userMenuDropdown');
     const trigger = document.querySelector('.user-menu-trigger');
@@ -830,7 +830,7 @@ function copyToClipboard(text) {
         notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #0d1117; border: 1px solid #3fb950; color: #3fb950; padding: 16px 24px; border-radius: 8px; z-index: 10001; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
         notification.innerHTML = '<i class="fas fa-check-circle"></i> Copied to clipboard!';
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.remove();
         }, 3000);
@@ -844,7 +844,7 @@ function copyCode(elementId) {
     const codeElement = document.getElementById(elementId);
     // Get text content (strips HTML tags)
     const text = codeElement.textContent || codeElement.innerText;
-    
+
     // Replace placeholders with actual values
     let finalText = text;
     if (currentUser && currentUser.id) {
@@ -853,14 +853,14 @@ function copyCode(elementId) {
     if (currentToken) {
         finalText = finalText.replace(/YOUR_API_TOKEN/g, currentToken);
     }
-    
+
     navigator.clipboard.writeText(finalText).then(() => {
         // Show success notification
         const notification = document.createElement('div');
         notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #0d1117; border: 1px solid #3fb950; color: #3fb950; padding: 16px 24px; border-radius: 8px; z-index: 10001; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
         notification.innerHTML = '<i class="fas fa-check-circle"></i> Code copied to clipboard!';
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.remove();
         }, 3000);
@@ -873,26 +873,26 @@ function copyCode(elementId) {
 async function showKeyDetails(keyValue) {
     const modal = document.getElementById('keyDetailsModal');
     const content = document.getElementById('key-details-content');
-    
+
     if (!modal || !content) return;
-    
+
     modal.style.display = 'flex';
     content.innerHTML = '<div class="loading">Loading key details...</div>';
-    
+
     // Find the key in cache
     const key = keysCache.find(k => k.key === keyValue);
-    
+
     if (!key) {
         content.innerHTML = '<div style="color: #ef4444;">Key not found</div>';
         return;
     }
-    
+
     // Format dates
     const createdAt = key.createdAt ? new Date(key.createdAt).toLocaleString() : 'N/A';
     const expiresAt = key.expiresAt ? new Date(key.expiresAt).toLocaleString() : 'Never';
     const lastCheck = key.lastCheck ? new Date(key.lastCheck).toLocaleString() : 'Never';
     const usedAt = key.usedAt ? new Date(key.usedAt).toLocaleString() : 'Never';
-    
+
     // Calculate expiry in hours
     let expiryHours = 'N/A';
     if (key.expiresAt) {
@@ -906,13 +906,13 @@ async function showKeyDetails(keyValue) {
             expiryHours = 'Expired';
         }
     } else if (key.amount && key.duration) {
-        const durationMap = { 'day': 24, 'week': 168, 'month': 720, 'hour': 1, 'minute': 1/60, 'second': 1/3600 };
+        const durationMap = { 'day': 24, 'week': 168, 'month': 720, 'hour': 1, 'minute': 1 / 60, 'second': 1 / 3600 };
         const hours = (key.amount || 0) * (durationMap[key.duration] || 0);
         if (hours > 0) {
             expiryHours = `${Math.floor(hours)}h`;
         }
     }
-    
+
     // Determine status
     let status = 'Active';
     let statusClass = 'status-active';
@@ -927,7 +927,7 @@ async function showKeyDetails(keyValue) {
         status = 'Used';
         statusClass = 'status-used';
     }
-    
+
     const html = `
         <div class="key-details-header">
             <div class="key-details-key">
@@ -1047,7 +1047,7 @@ async function showKeyDetails(keyValue) {
             </div>
         </div>
     `;
-    
+
     content.innerHTML = html;
 }
 
@@ -1063,7 +1063,7 @@ function closeKeyDetailsModal() {
 async function loadApplications() {
     const listDiv = document.getElementById('applications-list');
     if (!listDiv) return;
-    
+
     try {
         const response = await fetch(`${API}/applications`, {
             method: 'GET',
@@ -1072,17 +1072,17 @@ async function loadApplications() {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             applicationsCache = data.applications || [];
-            
+
             if (applicationsCache.length === 0) {
                 listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No applications yet. Create your first application to get started!</div>';
                 return;
             }
-            
+
             let html = '<div class="applications-grid">';
             applicationsCache.forEach(app => {
                 html += `
@@ -1130,19 +1130,19 @@ function closeCreateApplicationModal() {
 async function createApplication() {
     const name = document.getElementById('new-app-name').value.trim();
     const statusDiv = document.getElementById('create-app-status');
-    
+
     if (!name) {
         statusDiv.innerHTML = '<div style="color: #ef4444;">Please enter an application name</div>';
         return;
     }
-    
+
     if (name.length < 2 || name.length > 50) {
         statusDiv.innerHTML = '<div style="color: #ef4444;">Application name must be 2-50 characters</div>';
         return;
     }
-    
+
     statusDiv.innerHTML = '<div style="color: #888888;">Creating application...</div>';
-    
+
     try {
         const response = await fetch(`${API}/applications`, {
             method: 'POST',
@@ -1154,9 +1154,9 @@ async function createApplication() {
                 name: name
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             statusDiv.innerHTML = '<div style="color: #22c55e; display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-check-circle"></i> Application created successfully!</div>';
             setTimeout(() => {
@@ -1181,26 +1181,26 @@ async function viewApplication(appId) {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.application) {
             const app = data.application;
             currentApplication = app;
-            
+
             // Update application context header
             document.getElementById('app-context-name').textContent = app.name;
-            
+
             // Update credentials
             document.getElementById('app-account-id').textContent = app.accountId;
             document.getElementById('app-api-token').textContent = app.apiToken;
             document.getElementById('app-code-account-id').textContent = app.accountId;
             document.getElementById('app-code-api-token').textContent = app.apiToken;
-            
+
             // Hide main sidebar, show app sidebar
             document.getElementById('main-sidebar-nav').style.display = 'none';
             document.getElementById('app-sidebar-nav').style.display = 'flex';
-            
+
             // Hide all main tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 if (!tab.id.startsWith('app-') && tab.id !== 'application-detail-tab') {
@@ -1208,14 +1208,14 @@ async function viewApplication(appId) {
                     tab.classList.remove('active');
                 }
             });
-            
+
             // Show application detail view
             const detailTab = document.getElementById('application-detail-tab');
             if (detailTab) {
                 detailTab.style.display = 'block';
                 detailTab.classList.add('active');
             }
-            
+
             // Show keys tab by default
             showAppTab('keys');
         } else {
@@ -1229,18 +1229,18 @@ async function viewApplication(appId) {
 
 function exitApplicationView() {
     currentApplication = null;
-    
+
     // Hide app sidebar, show main sidebar
     document.getElementById('main-sidebar-nav').style.display = 'flex';
     document.getElementById('app-sidebar-nav').style.display = 'none';
-    
+
     // Hide application detail view
     const detailTab = document.getElementById('application-detail-tab');
     if (detailTab) {
         detailTab.style.display = 'none';
         detailTab.classList.remove('active');
     }
-    
+
     // Show applications tab
     showTab('applications');
 }
@@ -1251,14 +1251,14 @@ function showAppTab(tabName) {
         tab.classList.remove('active');
         tab.style.display = 'none';
     });
-    
+
     // Show selected tab
     const tabElement = document.getElementById('app-' + tabName + '-tab');
     if (tabElement) {
         tabElement.classList.add('active');
         tabElement.style.display = 'block';
     }
-    
+
     // Update nav items
     document.querySelectorAll('#app-sidebar-nav .nav-item').forEach(item => {
         item.classList.remove('active');
@@ -1266,7 +1266,7 @@ function showAppTab(tabName) {
             item.classList.add('active');
         }
     });
-    
+
     // Load data if needed
     if (tabName === 'keys') {
         loadAppKeys();
@@ -1278,16 +1278,16 @@ function showAppTab(tabName) {
 // Load keys for current application
 async function loadAppKeys() {
     if (!currentApplication) return;
-    
+
     try {
         const response = await fetch(`${API}/keys/list`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: currentToken })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             // Filter keys for this application
             const appKeys = (data.keys || []).filter(k => k.applicationId === currentApplication.id);
@@ -1295,24 +1295,24 @@ async function loadAppKeys() {
             selectedKeys.clear();
             const tbody = document.getElementById('app-keys-table');
             tbody.innerHTML = '';
-            
+
             if (appKeys.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="loading">No keys generated yet for this application</td></tr>';
                 updateAppSelectionStatus();
                 updateAppSelectAllCheckbox();
                 return;
             }
-            
-            const sortedKeys = appKeys.sort((a, b) => 
+
+            const sortedKeys = appKeys.sort((a, b) =>
                 new Date(b.createdAt) - new Date(a.createdAt)
             );
-            
+
             sortedKeys.forEach(key => {
                 const tr = document.createElement('tr');
-                
+
                 let status = 'Active';
                 let statusClass = 'status-active';
-                
+
                 if (key.expiresAt) {
                     const expiry = new Date(key.expiresAt);
                     if (expiry < new Date()) {
@@ -1320,12 +1320,12 @@ async function loadAppKeys() {
                         statusClass = 'status-expired';
                     }
                 }
-                
+
                 if (key.usedBy) {
                     status = 'Used';
                     statusClass = 'status-used';
                 }
-                
+
                 // Calculate expiry in hours
                 let expiryText = 'Never';
                 if (key.expiresAt) {
@@ -1339,17 +1339,17 @@ async function loadAppKeys() {
                         expiryText = 'Expired';
                     }
                 } else if (key.amount && key.duration) {
-                    const durationMap = { 'day': 24, 'week': 168, 'month': 720, 'hour': 1, 'minute': 1/60, 'second': 1/3600 };
+                    const durationMap = { 'day': 24, 'week': 168, 'month': 720, 'hour': 1, 'minute': 1 / 60, 'second': 1 / 3600 };
                     const hours = (key.amount || 0) * (durationMap[key.duration] || 0);
                     if (hours > 0) {
                         expiryText = `${Math.floor(hours)}h`;
                     }
                 }
-                
+
                 let hwidDisplay = key.hwid || 'None';
                 const frozen = key.frozen ? 'Yes' : 'No';
                 const createdBy = key.createdBy || currentUser?.username || 'N/A';
-                
+
                 tr.innerHTML = `
                     <td style="text-align:center;">
                         <label class="custom-checkbox">
@@ -1379,7 +1379,7 @@ async function loadAppKeys() {
                         </div>
                     </td>
                 `;
-                
+
                 tbody.appendChild(tr);
             });
 
@@ -1394,28 +1394,28 @@ async function loadAppKeys() {
 function filterAppKeys() {
     const searchInput = document.getElementById('app-key-search');
     if (!searchInput) return;
-    
+
     const searchTerm = searchInput.value.toLowerCase().trim();
     const rows = document.querySelectorAll('#app-keys-table tbody tr');
-    
+
     if (rows.length === 1 && rows[0].querySelector('.loading')) {
         return;
     }
-    
+
     rows.forEach(row => {
         if (row.querySelector('.loading')) {
             return;
         }
-        
+
         const keyText = row.querySelector('td:nth-child(2) code')?.textContent.toLowerCase() || '';
         const hwidText = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
         const expiryText = row.querySelector('td:nth-child(4)')?.textContent.toLowerCase() || '';
         const frozenText = row.querySelector('td:nth-child(5)')?.textContent.toLowerCase() || '';
         const createdByText = row.querySelector('td:nth-child(6)')?.textContent.toLowerCase() || '';
-        
-        if (searchTerm === '' || 
-            keyText.includes(searchTerm) || 
-            hwidText.includes(searchTerm) || 
+
+        if (searchTerm === '' ||
+            keyText.includes(searchTerm) ||
+            hwidText.includes(searchTerm) ||
             expiryText.includes(searchTerm) ||
             frozenText.includes(searchTerm) ||
             createdByText.includes(searchTerm)) {
@@ -1496,19 +1496,19 @@ async function deleteAllAppKeys() {
 function copyAppCode(elementId) {
     const codeElement = document.getElementById(elementId);
     const text = codeElement.textContent || codeElement.innerText;
-    
+
     let finalText = text;
     if (currentApplication) {
         finalText = finalText.replace(/YOUR_ACCOUNT_ID/g, currentApplication.accountId);
         finalText = finalText.replace(/YOUR_API_TOKEN/g, currentApplication.apiToken);
     }
-    
+
     navigator.clipboard.writeText(finalText).then(() => {
         const notification = document.createElement('div');
         notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #0d1117; border: 1px solid #3fb950; color: #3fb950; padding: 16px 24px; border-radius: 8px; z-index: 10001; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
         notification.innerHTML = '<i class="fas fa-check-circle"></i> Code copied to clipboard!';
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.remove();
         }, 3000);
@@ -1521,7 +1521,7 @@ async function deleteApplication(appId, appName) {
     if (!confirm(`Delete application "${appName}"?\n\nThis will permanently delete the application and all associated keys.`)) {
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/applications/${appId}`, {
             method: 'DELETE',
@@ -1530,9 +1530,9 @@ async function deleteApplication(appId, appName) {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             if (currentApplication && currentApplication.id === appId) {
                 showTab('applications');
@@ -1549,7 +1549,7 @@ async function deleteApplication(appId, appName) {
 }
 
 // Toggle amount input based on duration for app keys
-document.getElementById('app-duration')?.addEventListener('change', function() {
+document.getElementById('app-duration')?.addEventListener('change', function () {
     const amountGroup = document.getElementById('app-amount-group');
     if (this.value === 'lifetime') {
         amountGroup.style.display = 'none';
@@ -1563,41 +1563,41 @@ async function generateAppKey() {
         alert('No application selected');
         return;
     }
-    
+
     const format = document.getElementById('app-format').value;
     const duration = document.getElementById('app-duration').value;
     const amount = document.getElementById('app-amount').value;
-    
+
     if (!format || !format.includes('*')) {
         alert('Format must include at least one * for random characters');
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/keys/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                token: currentToken, 
-                format, 
-                duration, 
+            body: JSON.stringify({
+                token: currentToken,
+                format,
+                duration,
                 amount,
                 applicationId: currentApplication.id
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             document.getElementById('app-generated-key').textContent = data.key;
             document.getElementById('app-generated-result').style.display = 'block';
-            
+
             let info = `Duration: ${duration === 'lifetime' ? 'Lifetime' : `${amount} ${duration}(s)`}`;
             if (data.data.expiresAt) {
                 info += ` | Expires: ${new Date(data.data.expiresAt).toLocaleString()}`;
             }
             document.getElementById('app-key-info').textContent = info;
-            
+
             // Reload keys
             if (currentApplication) {
                 loadAppKeys();
@@ -1623,27 +1623,27 @@ function copyAppKey() {
 }
 
 // Close modal when clicking outside
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const keyDetailsModal = document.getElementById('keyDetailsModal');
     if (keyDetailsModal) {
-        keyDetailsModal.addEventListener('click', function(e) {
+        keyDetailsModal.addEventListener('click', function (e) {
             if (e.target === keyDetailsModal) {
                 closeKeyDetailsModal();
             }
         });
     }
-    
+
     const createAppModal = document.getElementById('createApplicationModal');
     if (createAppModal) {
-        createAppModal.addEventListener('click', function(e) {
+        createAppModal.addEventListener('click', function (e) {
             if (e.target === createAppModal) {
                 closeCreateApplicationModal();
             }
         });
     }
-    
+
     // Close on Escape key
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             closeKeyDetailsModal();
             closeCreateApplicationModal();
@@ -1656,20 +1656,20 @@ async function showFile(filename) {
     try {
         // Try to fetch from current domain first (frontend deployment)
         let response = await fetch(`/${filename}`);
-        
+
         // If not found, try backend
         if (!response.ok) {
             response = await fetch(`${API.replace('/api', '')}/${filename}`);
         }
-        
+
         if (!response.ok) {
             // If still not found, show instructions
             alert(`To view ${filename}:\n\n1. Go to your local project folder\n2. Open ${filename} in your editor\n\nThese files are in the frontend folder.`);
             return;
         }
-        
+
         const content = await response.text();
-        
+
         // Create modal to display file
         const modal = document.createElement('div');
         modal.className = 'modal';
@@ -1686,7 +1686,7 @@ async function showFile(filename) {
             </div>
         `;
         document.body.appendChild(modal);
-        
+
         // Close on background click
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.remove();
@@ -1708,17 +1708,17 @@ async function downloadFile(filename) {
     try {
         // Try to fetch from current domain first (frontend deployment)
         let response = await fetch(`/${filename}`);
-        
+
         // If not found, try backend
         if (!response.ok) {
             response = await fetch(`${API.replace('/api', '')}/${filename}`);
         }
-        
+
         if (!response.ok) {
             alert(`To download ${filename}:\n\n1. Go to your local project folder\n2. Copy ${filename} from the frontend folder\n3. Add it to your C++ project`);
             return;
         }
-        
+
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -1727,7 +1727,7 @@ async function downloadFile(filename) {
         link.style.display = 'none';
         document.body.appendChild(link);
         link.click();
-        
+
         // Cleanup
         setTimeout(() => {
             document.body.removeChild(link);
@@ -1741,30 +1741,30 @@ async function downloadFile(filename) {
 // Update username
 async function updateUsername() {
     const newUsername = document.getElementById('new-username').value.trim();
-    
+
     if (!newUsername) {
         alert('Please enter a new username');
         return;
     }
-    
+
     if (newUsername.length < 3 || newUsername.length > 30) {
         alert('Username must be 3-30 characters');
         return;
     }
-    
+
     if (!confirm(`Change username to "${newUsername}"?`)) {
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/account/update-username`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: currentToken, newUsername: newUsername })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             alert('Username updated successfully!');
             document.getElementById('new-username').value = '';
@@ -1783,25 +1783,25 @@ async function updateUsername() {
 // Update email
 async function updateEmail() {
     const newEmail = document.getElementById('new-email').value.trim();
-    
+
     if (!newEmail) {
         alert('Please enter a new email');
         return;
     }
-    
+
     if (!confirm(`Change email to "${newEmail}"?`)) {
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/account/update-email`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: currentToken, newEmail: newEmail })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             alert('Email updated successfully!');
             document.getElementById('new-email').value = '';
@@ -1819,34 +1819,34 @@ async function updateEmail() {
 async function updatePassword() {
     const currentPassword = document.getElementById('current-password').value;
     const newPassword = document.getElementById('new-password').value;
-    
+
     if (!currentPassword || !newPassword) {
         alert('Please fill in all fields');
         return;
     }
-    
+
     if (newPassword.length < 6) {
         alert('New password must be at least 6 characters');
         return;
     }
-    
+
     if (!confirm('Change your password?')) {
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/account/update-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                token: currentToken, 
+            body: JSON.stringify({
+                token: currentToken,
                 currentPassword: currentPassword,
-                newPassword: newPassword 
+                newPassword: newPassword
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             alert('Password updated successfully!');
             document.getElementById('current-password').value = '';
@@ -1862,29 +1862,29 @@ async function updatePassword() {
 // Delete account
 async function deleteAccount() {
     const password = document.getElementById('delete-password').value;
-    
+
     if (!password) {
         alert('Please enter your password to confirm');
         return;
     }
-    
+
     if (!confirm('⚠️ WARNING: This will permanently delete your account and ALL your license keys!\n\nThis action CANNOT be undone!\n\nAre you absolutely sure?')) {
         return;
     }
-    
+
     if (!confirm('Last chance! Are you 100% sure you want to delete your account?')) {
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/account/delete`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: currentToken, password: password })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             alert('Account deleted successfully. You will be logged out.');
             logout();
@@ -1901,19 +1901,19 @@ let adminKeyGenUser = null;
 // Show admin key generation modal
 function showAdminKeyGen(userId, username) {
     adminKeyGenUser = { id: userId, username: username };
-    
+
     const modal = document.getElementById('adminKeyGenModal');
     const userDisplay = document.getElementById('admin-key-user');
     const userIdDisplay = document.getElementById('admin-key-user-id');
-    
+
     userDisplay.textContent = username;
     userIdDisplay.textContent = `ID: ${userId}`;
-    
+
     // Reset form
     document.getElementById('admin-key-format').value = 'KEY-****';
     document.getElementById('admin-key-duration').value = 'day';
     document.getElementById('admin-key-amount').value = '30';
-    
+
     modal.style.display = 'flex';
     modal.classList.add('active');
 }
@@ -1929,17 +1929,17 @@ function closeAdminKeyGenModal() {
 // Generate key as admin
 async function generateAdminKey() {
     if (!adminKeyGenUser) return;
-    
+
     const format = document.getElementById('admin-key-format').value;
     const duration = document.getElementById('admin-key-duration').value;
     const amount = document.getElementById('admin-key-amount').value;
     const hidden = document.getElementById('admin-key-hidden').checked;
-    
+
     if (!format || !format.includes('*')) {
         alert('Format must include at least one * for random characters');
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/admin/keys/generate`, {
             method: 'POST',
@@ -1947,17 +1947,17 @@ async function generateAdminKey() {
                 'Authorization': currentToken,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 userId: adminKeyGenUser.id,
-                format, 
-                duration, 
+                format,
+                duration,
                 amount,
                 hidden
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             const visibilityText = hidden ? 'Hidden (admin-only)' : 'Visible to user';
             alert(`Key generated successfully for ${adminKeyGenUser.username}!\n\nKey: ${data.key}\nDuration: ${duration === 'lifetime' ? 'Lifetime' : `${amount} ${duration}(s)`}\nVisibility: ${visibilityText}`);
@@ -1977,7 +1977,7 @@ async function generateAdminKey() {
 }
 
 // Toggle admin key amount input based on duration
-document.getElementById('admin-key-duration')?.addEventListener('change', function() {
+document.getElementById('admin-key-duration')?.addEventListener('change', function () {
     const amountGroup = document.getElementById('admin-key-amount-group');
     if (this.value === 'lifetime') {
         amountGroup.style.display = 'none';
@@ -1990,14 +1990,14 @@ document.getElementById('admin-key-duration')?.addEventListener('change', functi
 async function resetUserPassword(userId, username) {
     const newPassword = prompt(`Enter new password for ${username}:`);
     if (!newPassword) return;
-    
+
     if (newPassword.length < 6 || newPassword.length > 100) {
         alert('Password must be 6-100 characters');
         return;
     }
-    
+
     if (!confirm(`Set new password for ${username}? This will change their login credentials.`)) return;
-    
+
     try {
         const response = await fetch(`${API}/admin/users/${userId}/reset-password`, {
             method: 'POST',
@@ -2007,9 +2007,9 @@ async function resetUserPassword(userId, username) {
             },
             body: JSON.stringify({ newPassword })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             alert(`Password for ${username} has been reset successfully!\n\nNew password: ${newPassword}\n\nPlease securely share this with the user.`);
         } else {
@@ -2024,7 +2024,7 @@ async function resetUserPassword(userId, username) {
 async function loadAdminUsers() {
     const listDiv = document.getElementById('admin-users-list');
     if (!listDiv) return;
-    
+
     try {
         const response = await fetch(`${API}/admin/users`, {
             method: 'GET',
@@ -2033,19 +2033,19 @@ async function loadAdminUsers() {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.users) {
             if (data.users.length === 0) {
                 listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No users found</div>';
                 return;
             }
-            
+
             let html = '<div class="admin-table-container"><table class="admin-table"><thead><tr>';
             html += '<th>Username</th><th>Account ID</th><th>Email</th><th>Keys</th><th>Created</th><th>Last Login</th><th>Last IP</th><th>Status</th><th>Actions</th>';
             html += '</tr></thead><tbody>';
-            
+
             data.users.forEach(user => {
                 const banned = user.banned ? '<span class="status status-expired">Banned</span>' : '<span class="status status-active">OK</span>';
                 html += `<tr>
@@ -2069,7 +2069,7 @@ async function loadAdminUsers() {
                     </td>
                 </tr>`;
             });
-            
+
             html += '</tbody></table></div>';
             listDiv.innerHTML = html;
         } else {
@@ -2084,10 +2084,10 @@ async function viewUserDetails(userId) {
     const modal = document.getElementById('userDetailsModal');
     const content = document.getElementById('userDetailsContent');
     const title = document.getElementById('userDetailsTitle');
-    
+
     modal.style.display = 'flex';
     content.innerHTML = '<div class="loading">Loading...</div>';
-    
+
     try {
         const response = await fetch(`${API}/admin/users/${userId}`, {
             method: 'GET',
@@ -2096,12 +2096,12 @@ async function viewUserDetails(userId) {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             title.textContent = `User: ${data.user.username}`;
-            
+
             let html = `<div class="user-details-section">
                 <h4>User Information</h4>
                 <p><strong>ID:</strong> ${data.user.id}</p>
@@ -2114,7 +2114,7 @@ async function viewUserDetails(userId) {
                 ${data.user.accountType ? `<p><strong>Account Type:</strong> ${escapeHtml(data.user.accountType)}</p>` : ''}
                 ${data.user.balance !== undefined ? `<p><strong>Balance:</strong> $${parseFloat(data.user.balance || 0).toFixed(2)}</p>` : ''}
             </div>`;
-            
+
             // Admin-only credentials section
             if (data.user.token) {
                 html += `<div class="user-details-section" style="background: #1a1a1a; border: 1px solid #3fb950; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem;">
@@ -2154,7 +2154,7 @@ async function viewUserDetails(userId) {
                     </div>
                 </div>`;
             }
-            
+
             if (data.keys && data.keys.length > 0) {
                 html += `<div class="user-details-section">
                     <h4>Keys (${data.keys.length})</h4>
@@ -2171,7 +2171,7 @@ async function viewUserDetails(userId) {
                                 </tr>
                             </thead>
                             <tbody>`;
-                
+
                 data.keys.forEach(key => {
                     html += `<tr>
                         <td><code style="font-size: 0.75rem;">${escapeHtml(key.key)}</code></td>
@@ -2182,12 +2182,12 @@ async function viewUserDetails(userId) {
                         <td>${key.usedAt ? new Date(key.usedAt).toLocaleString() : 'Never'}</td>
                     </tr>`;
                 });
-                
+
                 html += `</tbody></table></div></div>`;
             } else {
                 html += '<div class="user-details-section"><p style="color: #888888;">No keys found</p></div>';
             }
-            
+
             content.innerHTML = html;
         } else {
             content.innerHTML = '<div style="color: #ef4444;">Failed to load user details</div>';
@@ -2247,7 +2247,7 @@ async function deleteUser(userId, username) {
     if (!confirm(`⚠️ Delete user "${username}"?\n\nThis will permanently delete the user and ALL their license keys!\n\nThis action CANNOT be undone!`)) {
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/admin/users/${userId}`, {
             method: 'DELETE',
@@ -2256,9 +2256,9 @@ async function deleteUser(userId, username) {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             alert('User deleted successfully');
             loadAdminUsers();
@@ -2303,17 +2303,17 @@ async function createUser() {
     const email = document.getElementById('new-user-email').value.trim();
     const password = document.getElementById('new-user-password').value;
     const statusDiv = document.getElementById('create-user-status');
-    
+
     if (!username || !email || !password) {
         statusDiv.innerHTML = '<div style="color: #ef4444;">All fields required</div>';
         return;
     }
-    
+
     if (password.length < 6) {
         statusDiv.innerHTML = '<div style="color: #ef4444;">Password must be at least 6 characters</div>';
         return;
     }
-    
+
     // Validate reseller fields if account type is reseller
     if (accountType === 'reseller') {
         const allowedProducts = [];
@@ -2323,15 +2323,15 @@ async function createUser() {
         if (document.getElementById('user-product-public').checked) {
             allowedProducts.push('public');
         }
-        
+
         if (allowedProducts.length === 0) {
             statusDiv.innerHTML = '<div style="color: #ef4444;">At least one product must be selected for resellers</div>';
             return;
         }
     }
-    
+
     statusDiv.innerHTML = '<div style="color: #888888;">Creating user...</div>';
-    
+
     try {
         const requestBody = {
             username,
@@ -2339,7 +2339,7 @@ async function createUser() {
             password,
             accountType
         };
-        
+
         // Add reseller-specific fields
         if (accountType === 'reseller') {
             requestBody.initialBalance = parseFloat(document.getElementById('new-user-balance').value) || 0;
@@ -2352,7 +2352,7 @@ async function createUser() {
             }
             requestBody.allowedProducts = allowedProducts;
         }
-        
+
         const response = await fetch(`${API}/admin/users`, {
             method: 'POST',
             headers: {
@@ -2361,9 +2361,9 @@ async function createUser() {
             },
             body: JSON.stringify(requestBody)
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             statusDiv.innerHTML = '<div style="color: #22c55e;">✅ User created successfully!</div>';
             setTimeout(() => {
@@ -2384,7 +2384,7 @@ async function createUser() {
 async function loadAdminInvites() {
     const listDiv = document.getElementById('admin-invites-list');
     if (!listDiv) return;
-    
+
     try {
         const response = await fetch(`${API}/admin/invites`, {
             method: 'GET',
@@ -2393,26 +2393,26 @@ async function loadAdminInvites() {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.invites) {
             const invites = data.invites || [];
-            
+
             if (invites.length === 0) {
                 listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No invite codes</div>';
                 return;
             }
-            
+
             const usedCount = invites.filter(inv => inv.isUsed).length;
             const unusedCount = invites.length - usedCount;
-            
+
             let html = `<div style="margin-bottom: 1rem; display: flex; gap: 1rem; color: #888888; font-size: 0.875rem;">
                 <span>Total: <strong>${invites.length}</strong></span>
                 <span>Used: <strong style="color: #ef4444;">${usedCount}</strong></span>
                 <span>Available: <strong style="color: #22c55e;">${unusedCount}</strong></span>
             </div>`;
-            
+
             html += '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse;">';
             html += '<thead><tr style="border-bottom: 1px solid #1a1a1a;">';
             html += '<th style="padding: 0.75rem; text-align: left; color: #888888; font-size: 0.75rem; font-weight: 600;">Code</th>';
@@ -2421,13 +2421,13 @@ async function loadAdminInvites() {
             html += '<th style="padding: 0.75rem; text-align: left; color: #888888; font-size: 0.75rem; font-weight: 600;">Used By</th>';
             html += '<th style="padding: 0.75rem; text-align: left; color: #888888; font-size: 0.75rem; font-weight: 600;">Actions</th>';
             html += '</tr></thead><tbody>';
-            
+
             invites.forEach(invite => {
                 const statusClass = invite.isUsed ? 'status-expired' : 'status-active';
                 const statusText = invite.isUsed ? 'Used' : 'Available';
                 const createdDate = invite.createdAt ? new Date(invite.createdAt).toLocaleDateString() : '-';
                 const usedDate = invite.usedAt ? new Date(invite.usedAt).toLocaleDateString() : '-';
-                
+
                 html += `<tr style="border-bottom: 1px solid #1a1a1a;">`;
                 html += `<td style="padding: 0.75rem;"><code style="user-select: all; background: #0a0a0a; padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid #1a1a1a;">${escapeHtml(invite.code || '***')}</code></td>`;
                 html += `<td style="padding: 0.75rem;"><span class="status ${statusClass}">${statusText}</span></td>`;
@@ -2436,7 +2436,7 @@ async function loadAdminInvites() {
                 html += `<td style="padding: 0.75rem;"><button class="table-action-btn table-action-btn-danger" onclick="deleteInvite('${escapeHtml(invite.code || '***')}', '${escapeHtml(invite.hash)}')" title="Delete"><i class="fas fa-trash"></i></button></td>`;
                 html += `</tr>`;
             });
-            
+
             html += '</tbody></table></div>';
             listDiv.innerHTML = html;
         } else {
@@ -2450,7 +2450,7 @@ async function loadAdminInvites() {
 async function generateInvites() {
     const count = prompt('How many invite codes to generate?', '10');
     if (!count || isNaN(count) || parseInt(count) < 1) return;
-    
+
     try {
         const response = await fetch(`${API}/admin/invites`, {
             method: 'POST',
@@ -2460,9 +2460,9 @@ async function generateInvites() {
             },
             body: JSON.stringify({ count: parseInt(count) })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.invites) {
             // Show codes in alert for easy copying
             const codesText = data.invites.join('\n');
@@ -2478,14 +2478,14 @@ async function generateInvites() {
 
 async function deleteInvite(invite, hash) {
     if (!confirm(`Delete invite code "${invite === '***' ? '(encrypted code)' : invite}"?`)) return;
-    
+
     try {
         // If invite is "***" or we have a hash, use hash for deletion
         let url = `${API}/admin/invites/${encodeURIComponent(invite)}`;
         if ((invite === '***' || !invite) && hash) {
             url += `?hash=${encodeURIComponent(hash)}`;
         }
-        
+
         const response = await fetch(url, {
             method: 'DELETE',
             headers: {
@@ -2493,9 +2493,9 @@ async function deleteInvite(invite, hash) {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             loadAdminInvites();
         } else {
@@ -2508,34 +2508,34 @@ async function deleteInvite(invite, hash) {
 
 async function uploadUpdate(program) {
     const programType = program === 'spoofer' ? 'spoofer' : 'cheat';
-    
+
     const fileInput = document.getElementById(`update-file-${programType}`);
     const versionInput = document.getElementById(`update-version-${programType}`);
     const changelogInput = document.getElementById(`update-changelog-${programType}`);
     const statusDiv = document.getElementById(`upload-status-${programType}`);
-    
+
     if (!versionInput?.value || versionInput.value.trim() === '') {
         if (statusDiv) statusDiv.innerHTML = '<div style="color: #ef4444;">Please enter a version number</div>';
         return;
     }
-    
+
     if (!fileInput?.files || !fileInput.files[0]) {
         if (statusDiv) statusDiv.innerHTML = '<div style="color: #ef4444;">Please select a file</div>';
         return;
     }
-    
+
     const file = fileInput.files[0];
     if (!file.name.endsWith('.exe')) {
         if (statusDiv) statusDiv.innerHTML = '<div style="color: #ef4444;">Only .exe files are allowed</div>';
         return;
     }
-    
+
     // Use encrypted admin credentials
     const username = ADMIN_CREDS.u;
     const password = ADMIN_CREDS.p;
-    
+
     if (statusDiv) statusDiv.innerHTML = '<div style="color: #888888;">Uploading...</div>';
-    
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('version', versionInput.value.trim());
@@ -2543,15 +2543,15 @@ async function uploadUpdate(program) {
     formData.append('program', programType);
     formData.append('username', username);
     formData.append('password', password);
-    
+
     try {
         const response = await fetch(`${API.replace('/api', '')}/api/admin/upload`, {
             method: 'POST',
             body: formData
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             if (statusDiv) statusDiv.innerHTML = `<div style="color: #22c55e;">✅ Upload successful! Version: ${data.version}, File: ${data.filename}, Size: ${(data.size / 1024 / 1024).toFixed(2)} MB</div>`;
             fileInput.value = '';
@@ -2569,15 +2569,15 @@ async function uploadUpdate(program) {
 async function checkUpdateInfo() {
     const cheatInfoDiv = document.getElementById('update-info-cheat');
     const spooferInfoDiv = document.getElementById('update-info-spoofer');
-    
+
     // Helper to render status
     const render = (el, html) => { if (el) el.innerHTML = html; };
-    
+
     // Check cheat update
     try {
         const cheatResponse = await fetch(`${API.replace('/api', '')}/api/updates/check?program=cheat`);
         const cheatData = await cheatResponse.json();
-        
+
         if (cheatData.success) {
             if (cheatData.hasUpdate) {
                 const sizeMB = (cheatData.size / 1024 / 1024).toFixed(2);
@@ -2606,12 +2606,12 @@ async function checkUpdateInfo() {
     } catch (error) {
         render(cheatInfoDiv, '<div style="color: #ef4444;">Error checking update info</div>');
     }
-    
+
     // Check spoofer update
     try {
         const spooferResponse = await fetch(`${API.replace('/api', '')}/api/updates/check?program=spoofer`);
         const spooferData = await spooferResponse.json();
-        
+
         if (spooferData.success) {
             if (spooferData.hasUpdate) {
                 const sizeMB = (spooferData.size / 1024 / 1024).toFixed(2);
@@ -2691,10 +2691,10 @@ function clearSearchPlaceholder() {
 }
 
 // Restore placeholder if empty on blur
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('key-search');
     if (searchInput) {
-        searchInput.addEventListener('blur', function() {
+        searchInput.addEventListener('blur', function () {
             if (this.value === '') {
                 this.placeholder = 'Search keys...';
             }
@@ -2709,9 +2709,9 @@ function filterKeys() {
         console.warn('Search input not found');
         return;
     }
-    
+
     const searchTerm = searchInput.value.toLowerCase().trim();
-    
+
     // Find the table body - try multiple selectors
     let tbody = document.querySelector('table.keys-table tbody');
     if (!tbody) {
@@ -2724,32 +2724,32 @@ function filterKeys() {
             tbody = keysTab.querySelector('table tbody');
         }
     }
-    
+
     if (!tbody) {
         console.warn('Table body not found for search');
         return;
     }
-    
+
     const rows = Array.from(tbody.querySelectorAll('tr'));
-    
+
     if (rows.length === 0) {
         return;
     }
-    
+
     rows.forEach(row => {
         // Skip if it's a loading/empty row
         if (row.querySelector('.loading')) {
             row.style.display = searchTerm === '' ? '' : 'none';
             return;
         }
-        
+
         // Get text from each column (accounting for checkbox in first column)
         const cells = row.querySelectorAll('td');
         if (cells.length < 6) {
             row.style.display = searchTerm === '' ? '' : 'none';
             return;
         }
-        
+
         // Get text from each column - handle both code elements and regular text
         let keyText = '';
         const keyCell = cells[1];
@@ -2757,25 +2757,25 @@ function filterKeys() {
             const codeEl = keyCell.querySelector('code');
             keyText = codeEl ? codeEl.textContent.toLowerCase() : keyCell.textContent.toLowerCase();
         }
-        
+
         const hwidCell = cells[2];
         let hwidText = '';
         if (hwidCell) {
             const hwidSpan = hwidCell.querySelector('.hwid-display');
             hwidText = hwidSpan ? hwidSpan.textContent.toLowerCase() : hwidCell.textContent.toLowerCase();
         }
-        
+
         const expiryText = (cells[3]?.textContent || '').toLowerCase();
         const frozenText = (cells[4]?.textContent || '').toLowerCase();
         const createdByText = (cells[5]?.textContent || '').toLowerCase();
-        
-        const matches = searchTerm === '' || 
-            keyText.includes(searchTerm) || 
-            hwidText.includes(searchTerm) || 
+
+        const matches = searchTerm === '' ||
+            keyText.includes(searchTerm) ||
+            hwidText.includes(searchTerm) ||
             expiryText.includes(searchTerm) ||
             frozenText.includes(searchTerm) ||
             createdByText.includes(searchTerm);
-        
+
         row.style.display = matches ? '' : 'none';
     });
 }
@@ -2807,20 +2807,20 @@ function loadTheme() {
 document.addEventListener('DOMContentLoaded', async () => {
     // Load saved theme
     loadTheme();
-    
+
     // Clear search input
     const searchInput = document.getElementById('key-search');
     if (searchInput) {
         searchInput.value = '';
         searchInput.placeholder = 'Search keys...';
     }
-    
+
     // Load saved key generation preferences on page load
     loadKeyPreferences();
-    
+
     if (await checkAuth()) {
-        // Show keys tab by default (matching the image)
-        showTab('keys');
+        // Show applications tab by default
+        showTab('applications');
         // Check admin access
         checkAdminAccess();
         if (currentUser && currentUser.isAdmin) {
@@ -2836,7 +2836,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadAdminResellers() {
     const listDiv = document.getElementById('admin-resellers-list');
     if (!listDiv) return;
-    
+
     try {
         const response = await fetch(`${API}/admin/resellers`, {
             method: 'GET',
@@ -2845,19 +2845,19 @@ async function loadAdminResellers() {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.resellers) {
             if (data.resellers.length === 0) {
                 listDiv.innerHTML = '<div style="color: #888888; text-align: center; padding: 2rem;">No resellers found</div>';
                 return;
             }
-            
+
             let html = '<div class="admin-table-container"><table class="admin-table"><thead><tr>';
             html += '<th>Username</th><th>Email</th><th>Balance</th><th>Products</th><th>Keys</th><th>Created</th><th>Actions</th>';
             html += '</tr></thead><tbody>';
-            
+
             data.resellers.forEach(reseller => {
                 const products = (reseller.allowedProducts || []).join(', ') || 'None';
                 html += `<tr>
@@ -2874,7 +2874,7 @@ async function loadAdminResellers() {
                     </td>
                 </tr>`;
             });
-            
+
             html += '</tbody></table></div>';
             listDiv.innerHTML = html;
         } else {
@@ -2907,12 +2907,12 @@ async function createReseller() {
     const password = document.getElementById('new-reseller-password').value;
     const balance = parseFloat(document.getElementById('new-reseller-balance').value) || 0;
     const statusDiv = document.getElementById('create-reseller-status');
-    
+
     if (!username || !email || !password) {
         statusDiv.innerHTML = '<div style="color: #ef4444;">Username, email, and password required</div>';
         return;
     }
-    
+
     const allowedProducts = [];
     if (document.getElementById('reseller-product-private').checked) {
         allowedProducts.push('private');
@@ -2920,14 +2920,14 @@ async function createReseller() {
     if (document.getElementById('reseller-product-public').checked) {
         allowedProducts.push('public');
     }
-    
+
     if (allowedProducts.length === 0) {
         statusDiv.innerHTML = '<div style="color: #ef4444;">At least one product must be selected</div>';
         return;
     }
-    
+
     statusDiv.innerHTML = '<div style="color: #888888;">Creating reseller...</div>';
-    
+
     try {
         const response = await fetch(`${API}/auth/register-reseller`, {
             method: 'POST',
@@ -2943,9 +2943,9 @@ async function createReseller() {
                 allowedProducts
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             statusDiv.innerHTML = '<div style="color: #22c55e;">✅ Reseller created successfully!</div>';
             setTimeout(() => {
@@ -2963,7 +2963,7 @@ async function createReseller() {
 async function manageReseller(userId) {
     const modal = document.getElementById('manageResellerModal');
     const contentDiv = document.getElementById('manage-reseller-content');
-    
+
     try {
         const response = await fetch(`${API}/admin/users/${userId}`, {
             method: 'GET',
@@ -2972,18 +2972,18 @@ async function manageReseller(userId) {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.user) {
             const user = data.user;
             if (user.accountType !== 'reseller') {
                 alert('This user is not a reseller');
                 return;
             }
-            
+
             document.getElementById('manage-reseller-title').textContent = `Manage Reseller: ${escapeHtml(user.username)}`;
-            
+
             contentDiv.innerHTML = `
                 <div class="form-section">
                     <label class="form-label">Current Balance: $${parseFloat(user.balance || 0).toFixed(2)}</label>
@@ -3023,7 +3023,7 @@ async function manageReseller(userId) {
                 </div>
                 <div id="manage-reseller-status" style="margin-top: 1rem;"></div>
             `;
-            
+
             modal.style.display = 'flex';
         } else {
             alert('Error loading reseller details');
@@ -3041,12 +3041,12 @@ function closeManageResellerModal() {
 async function addResellerBalance(userId) {
     const amount = parseFloat(document.getElementById('add-balance-amount').value);
     const statusDiv = document.getElementById('manage-reseller-status');
-    
+
     if (isNaN(amount) || amount <= 0) {
         statusDiv.innerHTML = '<div style="color: #ef4444;">Invalid amount</div>';
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/admin/resellers/${userId}/add-balance`, {
             method: 'POST',
@@ -3056,9 +3056,9 @@ async function addResellerBalance(userId) {
             },
             body: JSON.stringify({ amount })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             statusDiv.innerHTML = `<div style="color: #22c55e;">✅ Added $${amount.toFixed(2)}. New balance: $${data.balance.toFixed(2)}</div>`;
             setTimeout(() => {
@@ -3075,12 +3075,12 @@ async function addResellerBalance(userId) {
 async function setResellerBalance(userId) {
     const amount = parseFloat(document.getElementById('set-balance-amount').value);
     const statusDiv = document.getElementById('manage-reseller-status');
-    
+
     if (isNaN(amount) || amount < 0) {
         statusDiv.innerHTML = '<div style="color: #ef4444;">Invalid amount</div>';
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/admin/resellers/${userId}/balance`, {
             method: 'POST',
@@ -3090,9 +3090,9 @@ async function setResellerBalance(userId) {
             },
             body: JSON.stringify({ balance: amount })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             statusDiv.innerHTML = `<div style="color: #22c55e;">✅ Balance set to $${data.balance.toFixed(2)}</div>`;
             setTimeout(() => {
@@ -3114,12 +3114,12 @@ async function updateResellerProducts(userId) {
     if (document.getElementById('manage-product-public').checked) {
         allowedProducts.push('public');
     }
-    
+
     if (allowedProducts.length === 0) {
         document.getElementById('manage-reseller-status').innerHTML = '<div style="color: #ef4444;">At least one product must be selected</div>';
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/admin/resellers/${userId}/products`, {
             method: 'POST',
@@ -3129,9 +3129,9 @@ async function updateResellerProducts(userId) {
             },
             body: JSON.stringify({ allowedProducts })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             document.getElementById('manage-reseller-status').innerHTML = '<div style="color: #22c55e;">✅ Products updated successfully</div>';
             setTimeout(() => {
@@ -3153,52 +3153,52 @@ async function loadAdminKeys() {
                 'Authorization': currentToken
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             const tbody = document.getElementById('admin-keys-table');
             tbody.innerHTML = '';
-            
+
             if (data.keys.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" class="loading">No keys found</td></tr>';
                 return;
             }
-            
-            const sortedKeys = data.keys.sort((a, b) => 
+
+            const sortedKeys = data.keys.sort((a, b) =>
                 new Date(b.createdAt) - new Date(a.createdAt)
             );
-            
+
             sortedKeys.forEach(key => {
                 const tr = document.createElement('tr');
-                
+
                 // Determine status
                 let status = 'Active';
                 let statusColor = '#22c55e';
-                
+
                 if (key.usedBy) {
                     status = 'Used';
                     statusColor = '#f59e0b';
                 }
-                
+
                 if (key.expiresAt && new Date(key.expiresAt) < new Date()) {
                     status = 'Expired';
                     statusColor = '#ef4444';
                 }
-                
+
                 // Format duration
                 let durationText = key.duration;
                 if (key.duration !== 'lifetime' && key.amount) {
                     durationText = `${key.amount} ${key.duration}${key.amount > 1 ? 's' : ''}`;
                 }
-                
+
                 // Format expiry date
                 let expiryText = 'Never';
                 if (key.expiresAt) {
                     const expiryDate = new Date(key.expiresAt);
                     expiryText = expiryDate.toLocaleDateString() + ' ' + expiryDate.toLocaleTimeString();
                 }
-                
+
                 // Determine visibility
                 let visibilityText = 'Visible';
                 let visibilityColor = '#22c55e';
@@ -3206,7 +3206,7 @@ async function loadAdminKeys() {
                     visibilityText = 'Hidden';
                     visibilityColor = '#f59e0b';
                 }
-                
+
                 tr.innerHTML = `
                     <td><code style="background: #1a1a1a; padding: 2px 6px; border-radius: 3px; font-size: 0.85em;">${key.key}</code></td>
                     <td>${key.username || 'Unknown'}</td>
@@ -3222,7 +3222,7 @@ async function loadAdminKeys() {
                         </button>
                     </td>
                 `;
-                
+
                 tbody.appendChild(tr);
             });
         } else {
@@ -3238,7 +3238,7 @@ async function deleteAdminKey(key) {
     if (!confirm(`Delete key ${key}? This action cannot be undone.`)) {
         return;
     }
-    
+
     try {
         const response = await fetch(`${API}/admin/keys/${encodeURIComponent(key)}`, {
             method: 'DELETE',
@@ -3246,9 +3246,9 @@ async function deleteAdminKey(key) {
                 'Authorization': currentToken
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             alert('Key deleted successfully');
             loadAdminKeys();
